@@ -2,17 +2,20 @@ import { ProductLabel } from "./ProductLabel";
 import { EMPTY_STATE_CLASS, PANEL_CLASS, PANEL_PADDING } from "./ui/styles";
 
 const PROGRESS_STEPS = [
-  "Planning research strategy",
-  "Searching company and product pages",
-  "Extracting pricing and positioning evidence",
-  "Checking recent news and market signals",
+  "Normalizing research input",
+  "Creating research plan",
+  "Researching company profile",
+  "Analyzing product and features",
+  "Collecting pricing signals",
+  "Scanning recent news",
   "Verifying claims against sources",
-  "Generating sales battlecard",
+  "Generating final report",
 ] as const;
 
 interface ResearchProgressProps {
   isRunning: boolean;
   currentStep: number;
+  progressMessage?: string | null;
 }
 
 type StepStatus = "complete" | "current" | "future";
@@ -27,7 +30,11 @@ function getStepStatus(
   return "future";
 }
 
-export function ResearchProgress({ isRunning, currentStep }: ResearchProgressProps) {
+export function ResearchProgress({
+  isRunning,
+  currentStep,
+  progressMessage = null,
+}: ResearchProgressProps) {
   const completedCount =
     currentStep > PROGRESS_STEPS.length
       ? PROGRESS_STEPS.length
@@ -42,7 +49,7 @@ export function ResearchProgress({ isRunning, currentStep }: ResearchProgressPro
             Research Progress
           </h2>
           <p className="mt-1.5 text-sm leading-relaxed text-stone-600">
-            Six-step pipeline from strategy through battlecard generation.
+            Eight-step pipeline from input normalization through report generation.
           </p>
         </div>
         <StatusBadge isRunning={isRunning} />
@@ -90,7 +97,9 @@ export function ResearchProgress({ isRunning, currentStep }: ResearchProgressPro
                       {label}
                     </p>
                     {status === "current" && (
-                      <p className="mt-1.5 text-xs text-amber-800">In progress…</p>
+                      <p className="mt-1.5 text-xs text-amber-800">
+                        {progressMessage ?? "In progress…"}
+                      </p>
                     )}
                     {status === "complete" && (
                       <p className="mt-1 text-xs text-stone-400">Complete</p>
@@ -146,8 +155,8 @@ function EmptyState() {
       </div>
       <p className="text-sm font-medium text-stone-700">Agent workflow idle</p>
       <p className="mt-2 max-w-xs text-xs leading-relaxed text-stone-500">
-        Generate a brief to start the six-step research pipeline. Progress
-        updates appear here in real time.
+        Generate a brief to start the eight-step research pipeline. Progress
+        updates stream from the backend in real time.
       </p>
     </div>
   );

@@ -43,8 +43,8 @@ export function ResearchForm({ onSubmit, isRunning = false }: ResearchFormProps)
           New Research
         </h2>
         <p className="mt-1.5 text-sm leading-relaxed text-stone-600">
-          Define the competitive set and report type. The agent workflow runs
-          locally in this demo — no backend required.
+          Define the competitive set and report type. Progress streams from the
+          local backend via Server-Sent Events.
         </p>
       </div>
 
@@ -88,8 +88,7 @@ export function ResearchForm({ onSubmit, isRunning = false }: ResearchFormProps)
 
         <div className="flex flex-col gap-4 border-t border-stone-200 pt-5 sm:flex-row sm:items-center sm:justify-between sm:pt-6">
           <p className="text-xs leading-relaxed text-stone-500">
-            All fields required. Demo uses mock data after the agent workflow
-            completes.
+            All fields required. Demo uses mock data streamed from the backend.
           </p>
           <button
             type="submit"
