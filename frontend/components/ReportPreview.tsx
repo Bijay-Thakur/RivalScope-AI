@@ -22,10 +22,15 @@ export function ReportPreview({ report }: ReportPreviewProps) {
               Evidence-linked analysis for GTM review. Share with sales, product
               marketing, or leadership ahead of your next competitive deal.
             </p>
+            <ReportMeta researchMode={report.researchMode} generatedAt={report.generatedAt} />
           </div>
           <ConfidenceBadge score={report.confidenceScore} />
         </div>
       </header>
+
+      {report.warnings && report.warnings.length > 0 && (
+        <WarningsAlert warnings={report.warnings} />
+      )}
 
       <div className="grid gap-5 sm:gap-6 lg:grid-cols-2">
         <TextSection title="Company Snapshot" content={report.companySnapshot} />
@@ -164,6 +169,72 @@ function SectionHeading({
       {description && (
         <p className="mt-1 text-xs leading-relaxed text-stone-500">{description}</p>
       )}
+    </div>
+  );
+}
+
+function ReportMeta({
+  researchMode,
+  generatedAt,
+}: {
+  researchMode?: string;
+  generatedAt?: string;
+}) {
+  if (!researchMode && !generatedAt) return null;
+
+  const modeLabel =
+    researchMode === "real" ? "Research mode: real" : "Research mode: mock";
+  const modeStyles =
+    researchMode === "real"
+      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+      : "bg-amber-50 text-amber-700 border-amber-200";
+
+  let formattedDate: string | undefined;
+  if (generatedAt) {
+    try {
+      formattedDate = new Date(generatedAt).toLocaleString(undefined, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+    } catch {
+      formattedDate = generatedAt;
+    }
+  }
+
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-2">
+      {researchMode && (
+        <span
+          className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium ${modeStyles}`}
+        >
+          {modeLabel}
+        </span>
+      )}
+      {formattedDate && (
+        <span className="text-[11px] text-stone-400">
+          Generated at: {formattedDate}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function WarningsAlert({ warnings }: { warnings: string[] }) {
+  return (
+    <div
+      role="alert"
+      className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3"
+    >
+      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-amber-800">
+        Research notes
+      </p>
+      <ul className="space-y-1">
+        {warnings.map((warning, index) => (
+          <li key={index} className="text-xs leading-relaxed text-amber-700">
+            {warning}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

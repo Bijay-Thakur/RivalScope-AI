@@ -51,4 +51,7 @@ export interface CompetitorReport {
   evidence: EvidenceItem[];
   sources: Source[];
   confidenceScore: number;
+  researchMode?: string;
+  generatedAt?: string;
+  warnings?: string[];
 }

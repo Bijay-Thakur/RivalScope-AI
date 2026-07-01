@@ -1,0 +1,638 @@
+{
+  "companySnapshot": "Notion is an AI workspace that helps teams work together and manage projects, documents, and tasks.",
+  "productPositioning": "Notion positions itself as a connected workspace for teams to manage projects, documents, and tasks, with a focus on customization and AI-powered tools.",
+  "featureComparison": [
+    "Customizable workspace",
+    "AI-powered tools",
+    "Project management",
+    "Document management",
+    "Task management"
+  ],
+  "pricingIntelligence": "Not found in available sources.",
+  "recentMoves": [
+    "Introduced Custom Agent Controls and a centralized Notion Credits Dashboard",
+    "Released Notion 3.2 with mobile AI, new models, and a people directory",
+    "Joined London Tech Week 2026 as a Platinum Partner"
+  ],
+  "strengths": [
+    "Customizable workspace",
+    "AI-powered tools",
+    "Strong project management features"
+  ],
+  "weaknesses": [
+    "Limited pricing information available",
+    "Some users prefer ClickUp for project/task management"
+  ],
+  "salesBattlecard": {
+    "talkTracks": [
+      "Notion is a connected workspace that helps teams work together and manage projects, documents, and tasks.",
+      "Our customizable workspace and AI-powered tools make it easy to manage complex projects and tasks.",
+      "Notion is a great choice for teams looking for a flexible and powerful project management solution."
+    ],
+    "objectionHandling": [
+      "We understand that some users may prefer ClickUp for project/task management, but Notion offers a more comprehensive solution for teams.",
+      "Our customizable workspace and AI-powered tools make it easy to adapt to changing project needs."
+    ],
+    "landmines": [
+      "Some users may find the interface overwhelming due to the number of features available.",
+      "Notion's pricing information is limited, so be sure to discuss pricing with your sales representative."
+    ]
+  },
+  "evidence": [
+    {
+      "id": "d24a5d80-e714-43eb-b646-c8469776b856",
+      "claim": "Notion: The AI workspace that works for you.",
+      "sourceId": "d7320b5c-e426-49a9-824a-44d6bf9e7504",
+      "confidence": "low",
+      "evidence_type": "company_profile",
+      "url": "https://www.notion.com",
+      "raw_text": "[](https://www.notion.com/product). *   [Notion Your AI workspace](https://www.notion.com/product). *   [Notion AI AI tools for work](https://www.notion.com/product/ai). *   [Agents Automate busywork](https://www.notion.com/product/agents). *   [AI Meeting Notes Perfectly written by AI](https://www.notion.com/product/ai-meeting-notes). *   [Enterprise Search Find answers instantly](https://www.notion.com/product/enterprise-search). *   [Knowledge Base Centralize your knowledge](https://www.notio"
+    },
+    {
+      "id": "651ce18e-96a7-49b3-8545-1a4ea4e28a72",
+      "claim": "Notion for Teams and Businesses",
+      "sourceId": "dd82bf93-0e16-41dd-802d-4192180e0340",
+      "confidence": "low",
+      "evidence_type": "company_profile",
+      "url": "https://www.notion.com/teams",
+      "raw_text": "Your projects, wikis and docs, all side by side. For small teams to large organizations. Manage high-level projects and specific tasks with custom Gantt and Kanban setups. > Notion helps us keep track of the 30+ projects we have going at once. We can click into any of them to get the full lay of the land right away. > Before Notion, a lot of the team's knowledge was bottlenecked in the minds of a few. ## Start with the Free Plan. For individuals to organize personal projects and life. * Publish "
+    },
+    {
+      "id": "05bedbf0-85c2-413f-9051-83fefae62e2d",
+      "claim": "Your connected workspace for wiki, docs & projects - Notion",
+      "sourceId": "3042e9a9-d976-4c22-94a0-d6bca6595bce",
+      "confidence": "high",
+      "evidence_type": "company_profile",
+      "url": "https://www.notion.com/product/projects",
+      "raw_text": "With Notion’s connected workspace, get your projects to the finish line faster and with less context switching. ## Infinitely configurable, so you can work the way you want. ### Capture every detail in a database. Track all your important information in one place, so nothing slips through the cracks. See the bigger picture of how projects fit together, so you can resolve dependencies and hit your deadlines. Create a dashboard with charts from as many sources as you want. Create your own priority"
+    },
+    {
+      "id": "3dd95bf7-5a4b-4085-a1a0-461f4928a709",
+      "claim": "Tech project management and documentation in Notion - YouTube",
+      "sourceId": "3a85e6a8-8e67-4812-acf4-c0feff147267",
+      "confidence": "high",
+      "evidence_type": "company_profile",
+      "url": "https://www.youtube.com/watch?v=D93lUj5Mj0U",
+      "raw_text": "... docs My Gear and Equipment https://christianlempa.de/kit. Timestamps: 00:00 Introduction 00:59 Notion Overview ... Notion. 22K"
+    },
+    {
+      "id": "21aee4f6-25f7-461f-b387-243aad1f2653",
+      "claim": "How To Manage Your Projects in Notion (2025 Tutorial) - YouTube",
+      "sourceId": "a944fc27-dff5-40cb-8b05-29a2d9c9d54f",
+      "confidence": "low",
+      "evidence_type": "company_profile",
+      "url": "https://www.youtube.com/watch?v=VsDF4yTD5jQ",
+      "raw_text": "How To Manage Your Projects in Notion (2025 Tutorial)\nMatthias Frank\n30600 subscribers\n2090 likes\n99700 views\n11 Mar 2025\nHere's how you can use Notion to manage your projects.\n\nNeed a Notion Consultant? https://matthiasfrank.de/en/notion-consulting/\n\nDownload this template: https://matthiasfrank.de/en/special\n\nLearn more about Recurring Tasks in Notion: https://youtu.be/h87-2VrVni4\n\nFull Notion For Business Setup: https://youtu.be/cHg8erTsdY8\n\nHere's everything you need to know to start managin"
+    },
+    {
+      "id": "624a3587-9a08-4c10-9884-5912a9313642",
+      "claim": "ClickUp vs Notion - Reddit",
+      "sourceId": "9fdc861d-c9cc-49ce-9f85-d6adb2383b26",
+      "confidence": "low",
+      "evidence_type": "company_profile",
+      "url": "https://www.reddit.com/r/clickup/comments/1b4vtmv/clickup_vs_notion",
+      "raw_text": "Used both, ClickUp definitely much better for project/task management. Docs have also gotten way better on par with Notion imo."
+    },
+    {
+      "id": "e49e42dd-e85b-4ac7-ad82-d9b5574752a0",
+      "claim": "Notion vs. Clickup: An honest & unbiased review [2025] - Motion",
+      "sourceId": "8a6738c0-2de3-44e7-a925-9157da6fbe27",
+      "confidence": "low",
+      "evidence_type": "company_profile",
+      "url": "https://www.usemotion.com/blog/notion-vs-clickup.html",
+      "raw_text": "You’re likely here because you’re looking to start using a project management tool or replace your current one with two of the most popular options—Notion or ClickUp. While both are project management tools, they cater to very different types of users. Notion is a flexible, all-in-one workspace that lets you build databases, wikis, docs, and more. ClickUp is a dedicated project management solution packed with task boards, calendars, and automation features. * If you work for a large organization"
+    },
+    {
+      "id": "b4576cbf-e4c9-4072-b114-abbac084d3ff",
+      "claim": "ClickUp vs Notion: Which Is Better for Operations Teams? - ZenPilot",
+      "sourceId": "4cd4c342-823a-47d2-b50b-415694403a39",
+      "confidence": "low",
+      "evidence_type": "company_profile",
+      "url": "https://www.zenpilot.com/blog/clickup-vs-notion",
+      "raw_text": "Free Webinar   The 2026 ClickUp Blueprint for Agencies. ClickUp and Notion are two of the best products in the productivity space. **ClickUp is for running operations.** Project management, time tracking, automations, workload visibility, reporting, profitability tracking. If your business runs on repeatable processes and you need to hold a team accountable to deadlines - ClickUp. If you need a beautiful, flexible home for your team’s collective brain - Notion. * **ClickUp is the stronger choice"
+    },
+    {
+      "id": "3a46c65f-8df1-4c48-a0f0-c7af9b3e75a1",
+      "claim": "Notion Updates & New Features - Matthias Frank",
+      "sourceId": "befa3578-3db5-4ccf-9f1a-601768b119c6",
+      "confidence": "medium",
+      "evidence_type": "recent_news",
+      "url": "https://matthiasfrank.de/en/notion-updates",
+      "raw_text": "Notion has introduced New Custom Agent Controls and a centralised Notion Credits Dashboard based model (starting May 4, 2026), pages."
+    },
+    {
+      "id": "1f89e750-6cad-4e40-8717-c961690d9558",
+      "claim": "Notion 3.2: Mobile AI, new models, people directory",
+      "sourceId": "ec9b2a05-9d46-4d7a-bb11-542311a26e83",
+      "confidence": "medium",
+      "evidence_type": "recent_news",
+      "url": "https://www.notion.com/releases/2026-01-20",
+      "raw_text": "First round of 2026 updates is in! This release helps Notion fit into your world even better. Work on the go, choose your AI models, track what"
+    },
+    {
+      "id": "f9f07d77-48a0-4c86-a879-8bb98bea01d1",
+      "claim": "What's New – Notion",
+      "sourceId": "40bdc40c-1616-4006-a3d8-91e078db7c38",
+      "confidence": "medium",
+      "evidence_type": "recent_news",
+      "url": "https://www.notion.com/releases",
+      "raw_text": "Keep up with the latest releases, improvements, and fixes. May 26, 2026 Merge cells in simple tables. Introducing: the Notion Developer Platform. can write"
+    },
+    {
+      "id": "2a50513b-a163-491d-9558-00aced78f592",
+      "claim": "Notion joins #LondonTechWeek 2026 as a Platinum Partner As AI ...",
+      "sourceId": "5205007c-753f-4556-8dbd-b708ff90c537",
+      "confidence": "medium",
+      "evidence_type": "recent_news",
+      "url": "https://www.facebook.com/LDNtechweek/posts/-notion-joins-londontechweek-2026-as-a-platinum-partneras-ai-transforms-the-way-/1313257490988739",
+      "raw_text": "## London Tech Week's Post. ### **London Tech Week**. May 27 at 9:25 AM  ·. 🧠 Notion joins #LondonTechWeek 2026 as a Platinum Partner. As AI transforms the way teams work, collaborate and scale, Notion will share a point of view on knowledge work in the AI age and why human judgement and agency matter more than ever. Catch them on the AI Arena stage, alongside an additional speaking session within the programme, and connect with the team on the show floor at Olympia London this June. 🎟️ Secure y"
+    },
+    {
+      "id": "756434d6-a641-4ae7-b755-4601ed9e8927",
+      "claim": "Notion - 2026 Company Profile, Team, Funding & Competitors - Tracxn",
+      "sourceId": "b0d1c466-3e80-4c17-8cba-8da6f73ad8de",
+      "confidence": "medium",
+      "evidence_type": "recent_news",
+      "url": "https://tracxn.com/d/companies/notion/__LQ8wyN9zLT-OwulhqbMYvw0Ayznneiugbu_OaKuGD4U",
+      "raw_text": "# Notion - Company Profile. ## Notion - About the company. | Legal Entity Name | Date of Incorporation | Revenue | Latest Employee Count | Documents |. ## Notion's funding and investors. Its first funding round was on 2013. Its latest funding round was a Series D round on Sep 28, 2021 for $275M. 3 investors participated in its latest round. Notion has 34 institutional investors and 8 angel investors. | Date of Funding | Funding Amount | Round Name | Post-Money Valuation | Revenue Multiple | Lead"
+    },
+    {
+      "id": "93a5ddcd-2515-413b-8d5b-d5f16ba8e3f4",
+      "claim": "Product Launch Announcement (w/ Notion AI) 2026 Template",
+      "sourceId": "ee63ec87-c069-4fbe-97b9-56989972209e",
+      "confidence": "medium",
+      "evidence_type": "recent_news",
+      "url": "https://www.notion.com/templates/product-launch-announcement-w-notion-ai",
+      "raw_text": "##### About this template. ### Ratings & Reviews. ### More by Notion. ### More like this. ### Related content. How Notion can help your marketing team stay organized and efficient. Working in disparate tools is costly and wastes time. Consolidate marketing projects, docs, and wiki into a seamless hub for work with Notion. ### Featured in. ## 9 templates to supercharge your workflows with Notion AI. ## Top 10 Product Launch Plan Templates for Digital Marketing Managers. ## Top 10 Product Launch P"
+    },
+    {
+      "id": "93a3eaae-497a-4851-a806-9a7dc3325cd9",
+      "claim": "How we Improved Our Project Management Processes in Notion",
+      "sourceId": "391248d5-447e-47f1-8214-6fc64a0e6e75",
+      "confidence": "medium",
+      "evidence_type": "recent_news",
+      "url": "https://notionmastery.com/evolution-project-management-in-notion",
+      "raw_text": "We adopted this new project management process at the start of Q1 2023. Our intention was to take on less and be more realistic about timelines and capacity."
+    },
+    {
+      "id": "f1b28e19-be20-44f1-a390-59dbcc1da827",
+      "claim": "Project documentation: How to build & maintain docs in a connected ...",
+      "sourceId": "e7164e85-2613-47b0-948b-7dc59cbbc0d9",
+      "confidence": "medium",
+      "evidence_type": "recent_news",
+      "url": "https://www.notion.com/use-case/project-management/project-documentation",
+      "raw_text": "Project documentation shouldn't live in silos. Learn how connected project documentation keeps EPD teams aligned and how Notion AI helps teams move faster."
+    },
+    {
+      "id": "ecc09ce6-74bf-4274-aa5f-cef3cd2c151b",
+      "claim": "How to use AI for project management: A practical guide - Notion",
+      "sourceId": "01efc516-d7e9-4d70-9494-75e868512224",
+      "confidence": "medium",
+      "evidence_type": "recent_news",
+      "url": "https://www.notion.com/blog/ai-project-management",
+      "raw_text": "Learn how to use Notion AI project management to unite docs, tasks, & teams in one workspace. Turn scattered updates into connected insights"
+    },
+    {
+      "id": "fd8ce134-c9b5-47df-afd4-7f9a2dfc13c3",
+      "claim": "Notion Pricing Plans: Free, Plus, Business, & Enterprise.",
+      "sourceId": "562db121-4466-421b-b19e-fe2a98fd0758",
+      "confidence": "high",
+      "evidence_type": "pricing",
+      "url": "https://www.notion.com/pricing",
+      "raw_text": "[](https://www.notion.com/product). *   [Notion Your AI workspace](https://www.notion.com/product). *   [Notion AI AI tools for work](https://www.notion.com/product/ai). *   [Enterprise Search Find answers instantly](https://www.notion.com/product/enterprise-search). *   [Connections Connect your apps](https://www.notion.com/connections). *   [Security Safe and scalable](https://www.notion.com/security). *   [Notion AI AI tools for work](https://www.notion.com/product/ai). *   [Enterprise Search"
+    },
+    {
+      "id": "85dd7176-4b13-46ff-9c3b-3b89b5d151db",
+      "claim": "Notion Pricing Explained (2026): Plans, Costs and Hidden Limits",
+      "sourceId": "508e2089-d63e-43bf-999c-20a97d678d66",
+      "confidence": "high",
+      "evidence_type": "pricing",
+      "url": "https://www.gend.co/blog/notion-pricing",
+      "raw_text": "# Notion Pricing Explained (2026): Plans, Costs and Hidden Limits. Four professionals collaborate in a modern office with a large monitor displaying information on Notion pricing (2026) plans, featuring per‑seat costs and FAQs, surrounded by brick walls and large windows. Annual billing typically discounts the monthly rate by up to ~20%. Notion’s pricing is seat‑based with four tiers (Free, Plus, Business, Enterprise). Guests are free, annual billing lowers per‑seat cost, and Business/Enterprise"
+    },
+    {
+      "id": "83c2c107-76eb-4561-a93c-fdbcc1c0d0cc",
+      "claim": "Notion Pricing (2025): Plans and Feature Overview - Plaky",
+      "sourceId": "439bfa61-bc85-4a11-9a65-a3cd1a124f7b",
+      "confidence": "high",
+      "evidence_type": "pricing",
+      "url": "https://plaky.com/learn/plaky/notion-pricing",
+      "raw_text": "# Notion Pricing in 2025: Plans and Feature Overview. Notion is a multi-purpose software solution that combines note-taking, task management, knowledge organization, and project management into a single, unified platform for individuals, small teams, and companies. Let’s explore Notion’s pricing plans and the platform’s free and paid features in more detail. Users who’ve already purchased the AI add-on will still be able to access its features even after the new pricing has been officially imple"
+    },
+    {
+      "id": "81048b90-d77f-4a84-bacc-155518d6d622",
+      "claim": "Notion: The AI workspace that works for you.",
+      "sourceId": "c57b0b85-fd42-4d3d-9d49-edb27f5c7402",
+      "confidence": "high",
+      "evidence_type": "pricing",
+      "url": "https://www.notion.com",
+      "raw_text": "[](https://www.notion.com/product). *   [Notion Your AI workspace](https://www.notion.com/product). *   [Notion AI AI tools for work](https://www.notion.com/product/ai). *   [Agents Automate busywork](https://www.notion.com/product/agents). *   [AI Meeting Notes Perfectly written by AI](https://www.notion.com/product/ai-meeting-notes). *   [Enterprise Search Find answers instantly](https://www.notion.com/product/enterprise-search). *   [Knowledge Base Centralize your knowledge](https://www.notio"
+    },
+    {
+      "id": "53cbe306-29b3-4ddf-88c4-70032cfd5406",
+      "claim": "Notion Pricing Tiers & Costs - The Digital Project Manager",
+      "sourceId": "1f01c3aa-5b38-4cbb-9f80-ab1e53131b41",
+      "confidence": "high",
+      "evidence_type": "pricing",
+      "url": "https://thedigitalprojectmanager.com/tools/notion-pricing",
+      "raw_text": "# Notion Pricing Tiers & Costs. A complete overview of Notion pricing tiers, additional costs, value for money, and how to pick the right plan for you. Notion is a task management software that offers multiple pricing tiers and plans, including a free plan and several paid options. A free version of Notion is available, which is best suited for individuals or small teams looking to try out the platform. Additionally, there is a custom pricing tier available for enterprise users, which includes a"
+    },
+    {
+      "id": "1b733559-7afa-4cd2-95c7-0b5107c7cfcc",
+      "claim": "Notion Pricing & Plans (Guide) – Forbes Advisor",
+      "sourceId": "63d314b3-2018-44ee-9160-fcf1df976aca",
+      "confidence": "high",
+      "evidence_type": "pricing",
+      "url": "https://www.forbes.com/advisor/business/notion-pricing",
+      "raw_text": "# Notion Pricing & Plans (Guide) – Forbes Advisor. *   greenhouse Insights: How AI Can Help You Make Your Smartest Hire Yet| Paid Program. *   The CEO's Guide To Marketing. When it comes to Notion pricing and plans, it offers a forever free plan, as well as paid plans starting at $10 per user per month for those that need additional features, such as unlimited file uploads. Read Forbes Advisor’s guide to learn more about Notion pricing. The first tier is a forever free plan that might be the ide"
+    },
+    {
+      "id": "c712617b-a839-4a4b-970c-3015d04a98b2",
+      "claim": "Your connected workspace for wiki, docs & projects - Notion",
+      "sourceId": "ceeff545-ef69-434a-8c15-4a2879d0b6c2",
+      "confidence": "high",
+      "evidence_type": "product_features",
+      "url": "https://www.notion.com/product/projects",
+      "raw_text": "With Notion’s connected workspace, get your projects to the finish line faster and with less context switching. ## Infinitely configurable, so you can work the way you want. ### Capture every detail in a database. Track all your important information in one place, so nothing slips through the cracks. See the bigger picture of how projects fit together, so you can resolve dependencies and hit your deadlines. Create a dashboard with charts from as many sources as you want. Create your own priority"
+    },
+    {
+      "id": "ec9aad9f-bb16-4401-a44f-662bc9911476",
+      "claim": "Notion: The AI workspace that works for you.",
+      "sourceId": "0ee750ce-fb7c-4486-b535-c95083724ee9",
+      "confidence": "low",
+      "evidence_type": "product_features",
+      "url": "https://www.notion.com",
+      "raw_text": "[](https://www.notion.com/product). *   [Notion Your AI workspace](https://www.notion.com/product). *   [Notion AI AI tools for work](https://www.notion.com/product/ai). *   [Agents Automate busywork](https://www.notion.com/product/agents). *   [AI Meeting Notes Perfectly written by AI](https://www.notion.com/product/ai-meeting-notes). *   [Enterprise Search Find answers instantly](https://www.notion.com/product/enterprise-search). *   [Knowledge Base Centralize your knowledge](https://www.notio"
+    },
+    {
+      "id": "d4db98e3-5e2f-4a07-bf6b-c295a0135ac8",
+      "claim": "Project management - Notion",
+      "sourceId": "239bb56b-327b-4436-8705-89c1fcea93e5",
+      "confidence": "high",
+      "evidence_type": "product_features",
+      "url": "https://www.notion.com/help/guides/category/project-management",
+      "raw_text": "### Project management. All you need is the @ key to quickly create a link to a person, date, or page. Working offline in Notion—Everything you need to know. Getting started with templates for your team. These powerful databases will help you jump start page creation, and inspire you to create your own Notion workflows. How to use Notion for your startup: Templates and more. Discover how to launch your startup with our comprehensive Notion guide. One of Notion's most powerful features, Boards ar"
+    },
+    {
+      "id": "16b3463e-f7b3-46e9-af01-a55b39f3e1bb",
+      "claim": "Getting started with projects and tasks - Notion",
+      "sourceId": "541916ab-e8ec-49c3-ace3-4ab09960f4b5",
+      "confidence": "high",
+      "evidence_type": "product_features",
+      "url": "https://www.notion.com/help/guides/getting-started-with-projects-and-tasks",
+      "raw_text": "# Getting started with projects and tasks. ## Projects and tasks live side by side with your notes and docs for a seamless project management experience. Leaders can oversee their team’s progress, and different departments can collaborate with clarity - from the high-level goals that drive each objective to granular tasks that move projects forward. Starting with a projects & tasks template that’s ready to go, you can create a fully customized system that suits the way you work best. In this gui"
+    },
+    {
+      "id": "4f6ac543-d0b2-4aca-a886-f1f05b14dee6",
+      "claim": "Easy project management and reporting with Notion AI ... - YouTube",
+      "sourceId": "00e63699-3e75-482a-89f5-5e31b9767d3d",
+      "confidence": "low",
+      "evidence_type": "product_features",
+      "url": "https://www.youtube.com/watch?v=fcfbAAczSJg",
+      "raw_text": "... notion.com/help/category/custom-agents - More Custom Agents use cases: https://www.notion.com/product/ai/use-cases?page=0&feature"
+    },
+    {
+      "id": "628b0e62-8c20-4c3b-98cb-8d09ef713c61",
+      "claim": "ClickUp Vs Notion: Which is Best for Your Team? - SmartTask",
+      "sourceId": "c9f93671-39cd-47d9-b9c2-8b2cef1d7c88",
+      "confidence": "low",
+      "evidence_type": "product_features",
+      "url": "https://www.smarttask.io/blog/clickup-vs-notion",
+      "raw_text": "# ClickUp Vs Notion: Detailed Comparison (Features & Pricing). In this post, we’ll tell which project management tool will give the best bang for your buck. ## **What is ClickUp?**. It combines task management capabilities, such as to-do lists, time-tracking, and sprints, with collaborative tools like real-time chat, interactive whiteboards, and in-built Docs, facilitating efficient teamwork. ## **What is Notion?**. Notion is a project management and note-taking app that hit the shelves just a y"
+    },
+    {
+      "id": "5cac32d5-4cd9-4210-a472-3c29b5d808e1",
+      "claim": "Notion vs. Clickup: An honest & unbiased review [2025] - Motion",
+      "sourceId": "f8f01adc-0290-4b23-8bef-b700e997b6c7",
+      "confidence": "low",
+      "evidence_type": "product_features",
+      "url": "https://www.usemotion.com/blog/notion-vs-clickup.html",
+      "raw_text": "You’re likely here because you’re looking to start using a project management tool or replace your current one with two of the most popular options—Notion or ClickUp. While both are project management tools, they cater to very different types of users. Notion is a flexible, all-in-one workspace that lets you build databases, wikis, docs, and more. ClickUp is a dedicated project management solution packed with task boards, calendars, and automation features. * If you work for a large organization"
+    },
+    {
+      "id": "6aab4075-193f-4423-88ac-1c42f16b0da7",
+      "claim": "ClickUp vs. Notion: Docs, Wikis, and Project Management",
+      "sourceId": "0b912eed-4d45-4490-9346-65dc55ce6500",
+      "confidence": "high",
+      "evidence_type": "product_features",
+      "url": "https://help.clickup.com/hc/en-us/articles/40981137088791-ClickUp-vs-Notion-Docs-Wikis-and-Project-Management",
+      "raw_text": "ClickUp includes more project management features at lower price points. ClickUp includes project management features at its lower tiers that Notion gates"
+    }
+  ],
+  "sources": [
+    {
+      "id": "d7320b5c-e426-49a9-824a-44d6bf9e7504",
+      "title": "Notion: The AI workspace that works for you.",
+      "url": "https://www.notion.com",
+      "sourceType": "other",
+      "publishedDate": null,
+      "credibilityScore": 0.5,
+      "retrieved_at": "2026-06-26T02:51:05.206016+00:00",
+      "snippet": "[](https://www.notion.com/product). *   [Notion Your AI workspace](https://www.notion.com/product). *   [Notion AI AI tools for work](https://www.notion.com/product/ai). *   [Agents Automate busywork](https://www.notion.com/product/agents). *   [AI Meeting Notes Perfectly written by AI](https://www."
+    },
+    {
+      "id": "dd82bf93-0e16-41dd-802d-4192180e0340",
+      "title": "Notion for Teams and Businesses",
+      "url": "https://www.notion.com/teams",
+      "sourceType": "other",
+      "publishedDate": null,
+      "credibilityScore": 0.5,
+      "retrieved_at": "2026-06-26T02:51:05.206098+00:00",
+      "snippet": "Your projects, wikis and docs, all side by side. For small teams to large organizations. Manage high-level projects and specific tasks with custom Gantt and Kanban setups. > Notion helps us keep track of the 30+ projects we have going at once. We can click into any of them to get the full lay of the"
+    },
+    {
+      "id": "3042e9a9-d976-4c22-94a0-d6bca6595bce",
+      "title": "Your connected workspace for wiki, docs & projects - Notion",
+      "url": "https://www.notion.com/product/projects",
+      "sourceType": "company_page",
+      "publishedDate": null,
+      "credibilityScore": 0.9,
+      "retrieved_at": "2026-06-26T02:51:05.206158+00:00",
+      "snippet": "With Notion’s connected workspace, get your projects to the finish line faster and with less context switching. ## Infinitely configurable, so you can work the way you want. ### Capture every detail in a database. Track all your important information in one place, so nothing slips through the cracks"
+    },
+    {
+      "id": "3a85e6a8-8e67-4812-acf4-c0feff147267",
+      "title": "Tech project management and documentation in Notion - YouTube",
+      "url": "https://www.youtube.com/watch?v=D93lUj5Mj0U",
+      "sourceType": "docs",
+      "publishedDate": null,
+      "credibilityScore": 0.85,
+      "retrieved_at": "2026-06-26T02:51:05.206192+00:00",
+      "snippet": "... docs My Gear and Equipment https://christianlempa.de/kit. Timestamps: 00:00 Introduction 00:59 Notion Overview ... Notion. 22K"
+    },
+    {
+      "id": "a944fc27-dff5-40cb-8b05-29a2d9c9d54f",
+      "title": "How To Manage Your Projects in Notion (2025 Tutorial) - YouTube",
+      "url": "https://www.youtube.com/watch?v=VsDF4yTD5jQ",
+      "sourceType": "other",
+      "publishedDate": null,
+      "credibilityScore": 0.5,
+      "retrieved_at": "2026-06-26T02:51:05.206226+00:00",
+      "snippet": "How To Manage Your Projects in Notion (2025 Tutorial)\nMatthias Frank\n30600 subscribers\n2090 likes\n99700 views\n11 Mar 2025\nHere's how you can use Notion to manage your projects.\n\nNeed a Notion Consultant? https://matthiasfrank.de/en/notion-consulting/\n\nDownload this template: https://matthiasfrank.de"
+    },
+    {
+      "id": "9fdc861d-c9cc-49ce-9f85-d6adb2383b26",
+      "title": "ClickUp vs Notion - Reddit",
+      "url": "https://www.reddit.com/r/clickup/comments/1b4vtmv/clickup_vs_notion",
+      "sourceType": "other",
+      "publishedDate": null,
+      "credibilityScore": 0.5,
+      "retrieved_at": "2026-06-26T02:51:05.206259+00:00",
+      "snippet": "Used both, ClickUp definitely much better for project/task management. Docs have also gotten way better on par with Notion imo."
+    },
+    {
+      "id": "8a6738c0-2de3-44e7-a925-9157da6fbe27",
+      "title": "Notion vs. Clickup: An honest & unbiased review [2025] - Motion",
+      "url": "https://www.usemotion.com/blog/notion-vs-clickup.html",
+      "sourceType": "other",
+      "publishedDate": null,
+      "credibilityScore": 0.5,
+      "retrieved_at": "2026-06-26T02:51:05.206292+00:00",
+      "snippet": "You’re likely here because you’re looking to start using a project management tool or replace your current one with two of the most popular options—Notion or ClickUp. While both are project management tools, they cater to very different types of users. Notion is a flexible, all-in-one workspace that"
+    },
+    {
+      "id": "4cd4c342-823a-47d2-b50b-415694403a39",
+      "title": "ClickUp vs Notion: Which Is Better for Operations Teams? - ZenPilot",
+      "url": "https://www.zenpilot.com/blog/clickup-vs-notion",
+      "sourceType": "other",
+      "publishedDate": null,
+      "credibilityScore": 0.5,
+      "retrieved_at": "2026-06-26T02:51:05.206333+00:00",
+      "snippet": "Free Webinar   The 2026 ClickUp Blueprint for Agencies. ClickUp and Notion are two of the best products in the productivity space. **ClickUp is for running operations.** Project management, time tracking, automations, workload visibility, reporting, profitability tracking. If your business runs on r"
+    },
+    {
+      "id": "befa3578-3db5-4ccf-9f1a-601768b119c6",
+      "title": "Notion Updates & New Features - Matthias Frank",
+      "url": "https://matthiasfrank.de/en/notion-updates",
+      "sourceType": "news",
+      "publishedDate": null,
+      "credibilityScore": 0.75,
+      "retrieved_at": "2026-06-26T02:51:06.542206+00:00",
+      "snippet": "Notion has introduced New Custom Agent Controls and a centralised Notion Credits Dashboard based model (starting May 4, 2026), pages."
+    },
+    {
+      "id": "ec9b2a05-9d46-4d7a-bb11-542311a26e83",
+      "title": "Notion 3.2: Mobile AI, new models, people directory",
+      "url": "https://www.notion.com/releases/2026-01-20",
+      "sourceType": "news",
+      "publishedDate": null,
+      "credibilityScore": 0.75,
+      "retrieved_at": "2026-06-26T02:51:06.542284+00:00",
+      "snippet": "First round of 2026 updates is in! This release helps Notion fit into your world even better. Work on the go, choose your AI models, track what"
+    },
+    {
+      "id": "40bdc40c-1616-4006-a3d8-91e078db7c38",
+      "title": "What's New – Notion",
+      "url": "https://www.notion.com/releases",
+      "sourceType": "news",
+      "publishedDate": null,
+      "credibilityScore": 0.75,
+      "retrieved_at": "2026-06-26T02:51:06.542314+00:00",
+      "snippet": "Keep up with the latest releases, improvements, and fixes. May 26, 2026 Merge cells in simple tables. Introducing: the Notion Developer Platform. can write"
+    },
+    {
+      "id": "5205007c-753f-4556-8dbd-b708ff90c537",
+      "title": "Notion joins #LondonTechWeek 2026 as a Platinum Partner As AI ...",
+      "url": "https://www.facebook.com/LDNtechweek/posts/-notion-joins-londontechweek-2026-as-a-platinum-partneras-ai-transforms-the-way-/1313257490988739",
+      "sourceType": "news",
+      "publishedDate": null,
+      "credibilityScore": 0.75,
+      "retrieved_at": "2026-06-26T02:51:06.542354+00:00",
+      "snippet": "## London Tech Week's Post. ### **London Tech Week**. May 27 at 9:25 AM  ·. 🧠 Notion joins #LondonTechWeek 2026 as a Platinum Partner. As AI transforms the way teams work, collaborate and scale, Notion will share a point of view on knowledge work in the AI age and why human judgement and agency matt"
+    },
+    {
+      "id": "b0d1c466-3e80-4c17-8cba-8da6f73ad8de",
+      "title": "Notion - 2026 Company Profile, Team, Funding & Competitors - Tracxn",
+      "url": "https://tracxn.com/d/companies/notion/__LQ8wyN9zLT-OwulhqbMYvw0Ayznneiugbu_OaKuGD4U",
+      "sourceType": "news",
+      "publishedDate": null,
+      "credibilityScore": 0.75,
+      "retrieved_at": "2026-06-26T02:51:06.542382+00:00",
+      "snippet": "# Notion - Company Profile. ## Notion - About the company. | Legal Entity Name | Date of Incorporation | Revenue | Latest Employee Count | Documents |. ## Notion's funding and investors. Its first funding round was on 2013. Its latest funding round was a Series D round on Sep 28, 2021 for $275M. 3 i"
+    },
+    {
+      "id": "ee63ec87-c069-4fbe-97b9-56989972209e",
+      "title": "Product Launch Announcement (w/ Notion AI) 2026 Template",
+      "url": "https://www.notion.com/templates/product-launch-announcement-w-notion-ai",
+      "sourceType": "news",
+      "publishedDate": null,
+      "credibilityScore": 0.75,
+      "retrieved_at": "2026-06-26T02:51:06.542409+00:00",
+      "snippet": "##### About this template. ### Ratings & Reviews. ### More by Notion. ### More like this. ### Related content. How Notion can help your marketing team stay organized and efficient. Working in disparate tools is costly and wastes time. Consolidate marketing projects, docs, and wiki into a seamless hu"
+    },
+    {
+      "id": "391248d5-447e-47f1-8214-6fc64a0e6e75",
+      "title": "How we Improved Our Project Management Processes in Notion",
+      "url": "https://notionmastery.com/evolution-project-management-in-notion",
+      "sourceType": "news",
+      "publishedDate": null,
+      "credibilityScore": 0.75,
+      "retrieved_at": "2026-06-26T02:51:06.542434+00:00",
+      "snippet": "We adopted this new project management process at the start of Q1 2023. Our intention was to take on less and be more realistic about timelines and capacity."
+    },
+    {
+      "id": "e7164e85-2613-47b0-948b-7dc59cbbc0d9",
+      "title": "Project documentation: How to build & maintain docs in a connected ...",
+      "url": "https://www.notion.com/use-case/project-management/project-documentation",
+      "sourceType": "news",
+      "publishedDate": null,
+      "credibilityScore": 0.75,
+      "retrieved_at": "2026-06-26T02:51:06.542462+00:00",
+      "snippet": "Project documentation shouldn't live in silos. Learn how connected project documentation keeps EPD teams aligned and how Notion AI helps teams move faster."
+    },
+    {
+      "id": "01efc516-d7e9-4d70-9494-75e868512224",
+      "title": "How to use AI for project management: A practical guide - Notion",
+      "url": "https://www.notion.com/blog/ai-project-management",
+      "sourceType": "news",
+      "publishedDate": null,
+      "credibilityScore": 0.75,
+      "retrieved_at": "2026-06-26T02:51:06.542489+00:00",
+      "snippet": "Learn how to use Notion AI project management to unite docs, tasks, & teams in one workspace. Turn scattered updates into connected insights"
+    },
+    {
+      "id": "562db121-4466-421b-b19e-fe2a98fd0758",
+      "title": "Notion Pricing Plans: Free, Plus, Business, & Enterprise.",
+      "url": "https://www.notion.com/pricing",
+      "sourceType": "pricing_page",
+      "publishedDate": null,
+      "credibilityScore": 0.9,
+      "retrieved_at": "2026-06-26T02:51:05.243042+00:00",
+      "snippet": "[](https://www.notion.com/product). *   [Notion Your AI workspace](https://www.notion.com/product). *   [Notion AI AI tools for work](https://www.notion.com/product/ai). *   [Enterprise Search Find answers instantly](https://www.notion.com/product/enterprise-search). *   [Connections Connect your ap"
+    },
+    {
+      "id": "508e2089-d63e-43bf-999c-20a97d678d66",
+      "title": "Notion Pricing Explained (2026): Plans, Costs and Hidden Limits",
+      "url": "https://www.gend.co/blog/notion-pricing",
+      "sourceType": "pricing_page",
+      "publishedDate": null,
+      "credibilityScore": 0.9,
+      "retrieved_at": "2026-06-26T02:51:05.243126+00:00",
+      "snippet": "# Notion Pricing Explained (2026): Plans, Costs and Hidden Limits. Four professionals collaborate in a modern office with a large monitor displaying information on Notion pricing (2026) plans, featuring per‑seat costs and FAQs, surrounded by brick walls and large windows. Annual billing typically di"
+    },
+    {
+      "id": "439bfa61-bc85-4a11-9a65-a3cd1a124f7b",
+      "title": "Notion Pricing (2025): Plans and Feature Overview - Plaky",
+      "url": "https://plaky.com/learn/plaky/notion-pricing",
+      "sourceType": "pricing_page",
+      "publishedDate": null,
+      "credibilityScore": 0.9,
+      "retrieved_at": "2026-06-26T02:51:05.243157+00:00",
+      "snippet": "# Notion Pricing in 2025: Plans and Feature Overview. Notion is a multi-purpose software solution that combines note-taking, task management, knowledge organization, and project management into a single, unified platform for individuals, small teams, and companies. Let’s explore Notion’s pricing pla"
+    },
+    {
+      "id": "c57b0b85-fd42-4d3d-9d49-edb27f5c7402",
+      "title": "Notion: The AI workspace that works for you.",
+      "url": "https://www.notion.com",
+      "sourceType": "pricing_page",
+      "publishedDate": null,
+      "credibilityScore": 0.9,
+      "retrieved_at": "2026-06-26T02:51:05.243184+00:00",
+      "snippet": "[](https://www.notion.com/product). *   [Notion Your AI workspace](https://www.notion.com/product). *   [Notion AI AI tools for work](https://www.notion.com/product/ai). *   [Agents Automate busywork](https://www.notion.com/product/agents). *   [AI Meeting Notes Perfectly written by AI](https://www."
+    },
+    {
+      "id": "1f01c3aa-5b38-4cbb-9f80-ab1e53131b41",
+      "title": "Notion Pricing Tiers & Costs - The Digital Project Manager",
+      "url": "https://thedigitalprojectmanager.com/tools/notion-pricing",
+      "sourceType": "pricing_page",
+      "publishedDate": null,
+      "credibilityScore": 0.9,
+      "retrieved_at": "2026-06-26T02:51:05.243210+00:00",
+      "snippet": "# Notion Pricing Tiers & Costs. A complete overview of Notion pricing tiers, additional costs, value for money, and how to pick the right plan for you. Notion is a task management software that offers multiple pricing tiers and plans, including a free plan and several paid options. A free version of"
+    },
+    {
+      "id": "63d314b3-2018-44ee-9160-fcf1df976aca",
+      "title": "Notion Pricing & Plans (Guide) – Forbes Advisor",
+      "url": "https://www.forbes.com/advisor/business/notion-pricing",
+      "sourceType": "pricing_page",
+      "publishedDate": null,
+      "credibilityScore": 0.9,
+      "retrieved_at": "2026-06-26T02:51:05.243241+00:00",
+      "snippet": "# Notion Pricing & Plans (Guide) – Forbes Advisor. *   greenhouse Insights: How AI Can Help You Make Your Smartest Hire Yet| Paid Program. *   The CEO's Guide To Marketing. When it comes to Notion pricing and plans, it offers a forever free plan, as well as paid plans starting at $10 per user per mo"
+    },
+    {
+      "id": "ceeff545-ef69-434a-8c15-4a2879d0b6c2",
+      "title": "Your connected workspace for wiki, docs & projects - Notion",
+      "url": "https://www.notion.com/product/projects",
+      "sourceType": "company_page",
+      "publishedDate": null,
+      "credibilityScore": 0.9,
+      "retrieved_at": "2026-06-26T02:51:05.141365+00:00",
+      "snippet": "With Notion’s connected workspace, get your projects to the finish line faster and with less context switching. ## Infinitely configurable, so you can work the way you want. ### Capture every detail in a database. Track all your important information in one place, so nothing slips through the cracks"
+    },
+    {
+      "id": "0ee750ce-fb7c-4486-b535-c95083724ee9",
+      "title": "Notion: The AI workspace that works for you.",
+      "url": "https://www.notion.com",
+      "sourceType": "other",
+      "publishedDate": null,
+      "credibilityScore": 0.5,
+      "retrieved_at": "2026-06-26T02:51:05.141463+00:00",
+      "snippet": "[](https://www.notion.com/product). *   [Notion Your AI workspace](https://www.notion.com/product). *   [Notion AI AI tools for work](https://www.notion.com/product/ai). *   [Agents Automate busywork](https://www.notion.com/product/agents). *   [AI Meeting Notes Perfectly written by AI](https://www."
+    },
+    {
+      "id": "239bb56b-327b-4436-8705-89c1fcea93e5",
+      "title": "Project management - Notion",
+      "url": "https://www.notion.com/help/guides/category/project-management",
+      "sourceType": "docs",
+      "publishedDate": null,
+      "credibilityScore": 0.85,
+      "retrieved_at": "2026-06-26T02:51:05.141508+00:00",
+      "snippet": "### Project management. All you need is the @ key to quickly create a link to a person, date, or page. Working offline in Notion—Everything you need to know. Getting started with templates for your team. These powerful databases will help you jump start page creation, and inspire you to create your "
+    },
+    {
+      "id": "541916ab-e8ec-49c3-ace3-4ab09960f4b5",
+      "title": "Getting started with projects and tasks - Notion",
+      "url": "https://www.notion.com/help/guides/getting-started-with-projects-and-tasks",
+      "sourceType": "docs",
+      "publishedDate": null,
+      "credibilityScore": 0.85,
+      "retrieved_at": "2026-06-26T02:51:05.141556+00:00",
+      "snippet": "# Getting started with projects and tasks. ## Projects and tasks live side by side with your notes and docs for a seamless project management experience. Leaders can oversee their team’s progress, and different departments can collaborate with clarity - from the high-level goals that drive each obje"
+    },
+    {
+      "id": "00e63699-3e75-482a-89f5-5e31b9767d3d",
+      "title": "Easy project management and reporting with Notion AI ... - YouTube",
+      "url": "https://www.youtube.com/watch?v=fcfbAAczSJg",
+      "sourceType": "other",
+      "publishedDate": null,
+      "credibilityScore": 0.5,
+      "retrieved_at": "2026-06-26T02:51:05.141590+00:00",
+      "snippet": "... notion.com/help/category/custom-agents - More Custom Agents use cases: https://www.notion.com/product/ai/use-cases?page=0&feature"
+    },
+    {
+      "id": "c9f93671-39cd-47d9-b9c2-8b2cef1d7c88",
+      "title": "ClickUp Vs Notion: Which is Best for Your Team? - SmartTask",
+      "url": "https://www.smarttask.io/blog/clickup-vs-notion",
+      "sourceType": "other",
+      "publishedDate": null,
+      "credibilityScore": 0.5,
+      "retrieved_at": "2026-06-26T02:51:05.141624+00:00",
+      "snippet": "# ClickUp Vs Notion: Detailed Comparison (Features & Pricing). In this post, we’ll tell which project management tool will give the best bang for your buck. ## **What is ClickUp?**. It combines task management capabilities, such as to-do lists, time-tracking, and sprints, with collaborative tools li"
+    },
+    {
+      "id": "f8f01adc-0290-4b23-8bef-b700e997b6c7",
+      "title": "Notion vs. Clickup: An honest & unbiased review [2025] - Motion",
+      "url": "https://www.usemotion.com/blog/notion-vs-clickup.html",
+      "sourceType": "other",
+      "publishedDate": null,
+      "credibilityScore": 0.5,
+      "retrieved_at": "2026-06-26T02:51:05.141657+00:00",
+      "snippet": "You’re likely here because you’re looking to start using a project management tool or replace your current one with two of the most popular options—Notion or ClickUp. While both are project management tools, they cater to very different types of users. Notion is a flexible, all-in-one workspace that"
+    },
+    {
+      "id": "0b912eed-4d45-4490-9346-65dc55ce6500",
+      "title": "ClickUp vs. Notion: Docs, Wikis, and Project Management",
+      "url": "https://help.clickup.com/hc/en-us/articles/40981137088791-ClickUp-vs-Notion-Docs-Wikis-and-Project-Management",
+      "sourceType": "docs",
+      "publishedDate": null,
+      "credibilityScore": 0.85,
+      "retrieved_at": "2026-06-26T02:51:05.141695+00:00",
+      "snippet": "ClickUp includes more project management features at lower price points. ClickUp includes project management features at its lower tiers that Notion gates"
+    }
+  ],
+  "confidenceScore": 0.5,
+  "generated_at": "2026-06-26T02:51:10.458818+00:00",
+  "research_mode": "real",
+  "warnings": []
+}

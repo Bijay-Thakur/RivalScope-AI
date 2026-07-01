@@ -10,6 +10,8 @@ class Source(BaseModel):
     source_type: str = Field(alias="sourceType")
     published_date: str | None = Field(default=None, alias="publishedDate")
     credibility_score: float = Field(alias="credibilityScore")
+    retrieved_at: str | None = None
+    snippet: str | None = None
 
 
 class EvidenceItem(BaseModel):
@@ -19,6 +21,9 @@ class EvidenceItem(BaseModel):
     claim: str
     source_id: str = Field(alias="sourceId")
     confidence: str
+    evidence_type: str | None = None
+    url: str | None = None
+    raw_text: str | None = None
 
 
 class VerifiedClaim(BaseModel):
@@ -53,3 +58,6 @@ class CompetitorReport(BaseModel):
     evidence: list[EvidenceItem]
     sources: list[Source]
     confidence_score: float = Field(alias="confidenceScore")
+    generated_at: str | None = None
+    research_mode: str | None = None
+    warnings: list[str] = []

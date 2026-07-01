@@ -10,7 +10,7 @@ from app.graph.state import RivalScopeState
 from app.core.logging import write_run_log
 from app.schemas.research import ResearchRequest
 
-_LIST_DELTA_FIELDS = ("progress_events", "sources", "evidence")
+_LIST_DELTA_FIELDS = ("progress_events", "sources", "evidence", "errors", "verified_claims")
 
 
 def _list_delta(state: RivalScopeState, patch: dict[str, Any], field: str) -> list[Any]:

@@ -142,5 +142,8 @@ export function parseStreamReport(raw: Record<string, unknown>): CompetitorRepor
     evidence: parseEvidence(raw),
     sources: parseSources(raw),
     confidenceScore: readNumber(raw, "confidenceScore", "confidence_score"),
+    researchMode: readString(raw, "researchMode", "research_mode") || undefined,
+    generatedAt: readString(raw, "generatedAt", "generated_at") || undefined,
+    warnings: readStringArray(raw, "warnings", "warnings"),
   };
 }

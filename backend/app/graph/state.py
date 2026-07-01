@@ -23,6 +23,6 @@ class RivalScopeState(TypedDict):
     research_plan: list[ResearchTask]
     evidence: Annotated[list[EvidenceItem], operator.add]
     sources: Annotated[list[Source], operator.add]
-    verified_claims: list[VerifiedClaim]
+    verified_claims: Annotated[list[VerifiedClaim], operator.add]
     final_report: CompetitorReport | None
-    errors: list[str]
+    errors: Annotated[list[str], operator.add]
