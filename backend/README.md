@@ -147,11 +147,154 @@ Requires `RESEARCH_MODE=real` and valid API keys in `.env`. The script:
 
 ---
 
+## Phase 4 — Evaluation & Observability
+
+Phase 4 adds a benchmark harness and structured run logging on top of the Phase 3 pipeline. API routes and the frontend are unchanged.
+
+### Why evaluation matters
+
+Competitive intelligence is only useful if reports are **complete**, **source-backed**, and **trustworthy enough to act on**. This project makes claims tied to URLs and evidence objects — evaluation verifies that the pipeline actually delivers that structure before we invest in fancier generation.
+
+Phase 4 does **not** claim the agent is factually correct. It measures whether the system:
+
+1. Produces populated report sections for diverse B2B matchups
+2. Collects a reasonable mix of source types per category
+3. Keeps evidence citations aligned with source records
+4. Completes within acceptable latency
+
+That baseline makes later improvements (better search, better prompts, LLM-as-judge) measurable instead of anecdotal.
+
+### Evaluation methodology
+
+```text
+benchmark_tasks.json  →  load_benchmark_tasks()
+                      →  run_evaluation()        # runs run_research_graph() per task
+                      →  score_report()          # deterministic scorers
+                      →  write_experiment_results()
+                      →  eval_results/{experiment}.*
+```
+
+1. Load tasks from `app/evaluation/benchmark_tasks.json`
+2. For each task, build a `ResearchRequest` and run the full LangGraph workflow
+3. Score the returned `CompetitorReport` with deterministic functions in `app/evaluation/scorers.py`
+4. Write JSON, CSV, summary Markdown, and failure-mode analysis to `eval_results/`
+
+The runner respects the current environment: `RESEARCH_MODE=mock` exercises mock nodes; `RESEARCH_MODE=real` calls Tavily and Groq.
+
+**Observability:** `app/observability/metrics.py` logs `run_metrics` events to `app/logs/research_runs.jsonl` after each graph run. Service-level events (search started/completed, evidence built, fact checker, report generator) are logged via `log_run_event()` without API keys or full page content.
+
+### Benchmark size
+
+| Item | Value |
+| --- | --- |
+| Total benchmark tasks | **20** |
+| Categories | Project management, CRM, dev tools, payments, data, AI, commerce, etc. |
+| Report types | `quick_brief`, `deep_research`, `sales_battlecard` |
+| Expected sections per task | 9 (snapshot, positioning, features, pricing, recent moves, strengths, weaknesses, battlecard, sources) |
+| Expected source types per task | 5 (`company_page`, `pricing_page`, `news`, `docs`, `other`) |
+
+Tasks are defined in `app/evaluation/benchmark_tasks.json`. Expected facts are high-level and stable — scorers do not require exact live pricing.
+
+### Metrics
+
+| Metric | Weight | Description |
+| --- | ---: | --- |
+| `task_completion` | 30% | All major report fields non-empty |
+| `section_coverage` | 25% | Fraction of expected benchmark sections present |
+| `source_coverage` | 20% | Fraction of expected source types present (partial credit) |
+| `citation_integrity` | 15% | Evidence `source_id` references valid sources; sources have URLs |
+| Efficiency | 10% | Latency tiers: ≤30s → 1.0, ≤60s → 0.7, ≤120s → 0.4, else 0.1 |
+
+`TaskScore` also records `evidence_count`, `source_count`, `warnings_count`, and `failure_notes`.
+
+### Run mock evaluation
+
+No API keys required. Used for CI (`tests/test_evaluation_runner.py`) and fast regression checks.
+
+```bash
+cd backend
+
+# Windows
+set RESEARCH_MODE=mock
+python scripts/run_evaluation.py --experiment-name phase4_mock_baseline --max-tasks 5
+
+# Mac/Linux
+RESEARCH_MODE=mock python scripts/run_evaluation.py --experiment-name phase4_mock_baseline --max-tasks 5
+```
+
+### Run real evaluation
+
+Requires `GROQ_API_KEY` and `TAVILY_API_KEY` in `backend/.env`. **Keep `--max-tasks` small** — each task runs four search tracks plus LLM fact-checking and report generation.
+
+```bash
+cd backend
+# RESEARCH_MODE=real in .env
+python scripts/run_evaluation.py --experiment-name phase4_real_smoke_test --max-tasks 2
+```
+
+Do not run all 20 tasks in real mode during development unless you intend to spend significant Tavily/Groq credits.
+
+### Example result table
+
+| Experiment | Mode | Tasks | Avg Score | Avg Latency | Avg Sources | Notes |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| `phase4_mock_baseline` | mock | 5 | 0.92 | 0.03s | 5.0 | All tasks scored 0.92; source coverage capped at 0.60 |
+| `phase4_real_smoke_test` | real | 2 | 0.95 | 47.29s | 30.5 | Reports generated with 30–31 sources each; 1 task missed `company_page` labeling |
+
+These are **initial smoke results**, not a full 20-task benchmark. Scores reflect structural quality, not claim-level truth.
+
+### Known failure modes
+
+**Mock mode (`phase4_mock_baseline`, 5 tasks)**
+
+- **Source coverage 0.60 on every task** — mock `build_mock_report()` provides `company_page` and `pricing_page` sources only; benchmark tasks also expect `news` and `docs`.
+- **Overall score 0.92** — completion, sections, and citations are perfect; source coverage drags the average down.
+- **Not a pipeline bug** — mock data predates the benchmark's source-type expectations.
+
+**Real mode (`phase4_real_smoke_test`, 2 tasks)**
+
+- **Source type mislabeling** — 1 of 2 tasks failed to classify any source as `company_page` despite collecting 31 sources.
+- **Latency** — task-002 took 65.85s (efficiency score 0.4); task-001 completed in 28.73s.
+- **Citation integrity** — 1.0 on both tasks (evidence linked to sources with URLs).
+- **No factual verification** — high scores do not mean claims are correct.
+
+### Planned fixes (next phase)
+
+1. **Align mock data** with benchmark source-type expectations (add `news` and `docs` demo sources, or adjust mock benchmark scoring).
+2. **Improve `detect_source_type`** heuristics and track-level overrides in `app/services/evidence.py`.
+3. **Expand query templates** per track so Tavily returns more on-target URLs.
+4. **Reduce real-mode latency** — profile slow nodes, consider lowering `max_results_per_query`, add query caching across benchmark runs.
+5. **Add LLM-as-judge or human eval** for claim-level accuracy (not in Phase 4 scope).
+
+### Evaluation project layout
+
+```text
+app/evaluation/
+  benchmark_tasks.json   # 20 benchmark cases
+  schemas.py             # BenchmarkTask, TaskScore, ExperimentResult
+  loader.py              # load_benchmark_tasks()
+  scorers.py             # deterministic scoring functions
+  runner.py              # run_evaluation()
+  report_writer.py       # JSON, CSV, summary outputs
+  failure_analysis.py    # failure mode Markdown reports
+
+app/observability/
+  metrics.py             # compute_run_metrics() → JSONL
+
+eval_results/            # experiment outputs (JSON, CSV, Markdown)
+
+scripts/
+  run_evaluation.py      # CLI entry point
+```
+
+---
+
 ## Development Cost Control
 
 - Keep `max_results_per_query` small (default is 3) — each query consumes Tavily credits and increases LLM context size.
-- Do not run benchmark or load-test loops in real mode — Tavily and Groq both have per-minute rate limits.
-- Prefer mock mode for UI development — it is instant, free, and deterministic.
+- Use `--max-tasks` with `scripts/run_evaluation.py` — do not run all 20 benchmark tasks in real mode during development.
+- Do not run benchmark or load-test loops in real mode without budgeting for Tavily and Groq usage.
+- Prefer mock mode for UI development and CI — it is instant, free, and deterministic.
 
 ---
 
@@ -261,13 +404,17 @@ backend/
   app/
     api/routes/research.py   # HTTP routes (POST + SSE stream)
     core/                    # Settings (config.py) and logging
+    evaluation/              # Phase 4 benchmark harness
     graph/                   # LangGraph state, nodes, workflow
+    observability/           # Phase 4 run metrics
     schemas/                 # Pydantic models (research, report, events)
     services/                # LLM, search, evidence, and report services
     main.py                  # FastAPI entrypoint
-  logs/                      # rivalscope.log + manual_live_report.json (gitignored)
+  eval_results/              # Phase 4 experiment outputs
+  logs/                      # rivalscope.log + research_runs.jsonl (gitignored)
   scripts/
     manual_live_research_test.py   # Manual smoke test for real mode only
+    run_evaluation.py              # Phase 4 benchmark CLI
   tests/
   pyproject.toml
   .env.example

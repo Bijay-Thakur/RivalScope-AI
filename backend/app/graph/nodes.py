@@ -159,7 +159,12 @@ def _run_track(
 ) -> PartialState:
     queries = build_all_queries(state["request"])[track]
     try:
-        result = run_research_track(track=track, queries=queries, source_type=source_type)
+        result = run_research_track(
+            track=track,
+            queries=queries,
+            source_type=source_type,
+            run_id=state["run_id"],
+        )
         new_sources = result["sources"]
         new_evidence = result["evidence"]
         new_warnings = result["warnings"]
@@ -320,6 +325,7 @@ def fact_checker_stub(state: RivalScopeState) -> PartialState:
             verified = verify_evidence_claims(
                 evidence=state["evidence"],
                 sources=state["sources"],
+                run_id=state["run_id"],
             )
         except Exception as exc:
             msg = f"Fact checker failed [{type(exc).__name__}] — skipping verification."
@@ -394,6 +400,7 @@ def report_generator(state: RivalScopeState) -> PartialState:
                 evidence=state["evidence"],
                 verified_claims=state["verified_claims"],
                 warnings=list(state["errors"]),
+                run_id=state["run_id"],
             )
         except Exception as exc:
             msg = f"Report generator failed [{type(exc).__name__}] — returning mock report."

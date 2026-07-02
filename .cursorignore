@@ -1,0 +1,11 @@
+node_modules/
+.next/
+dist/
+build/
+.env
+.env.*
+*.log
+coverage/
+tmp/
+out/
+public/

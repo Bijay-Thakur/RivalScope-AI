@@ -8,6 +8,7 @@ from app.graph import nodes
 from app.graph.constants import TOTAL_STEPS
 from app.graph.state import RivalScopeState
 from app.core.logging import write_run_log
+from app.observability.metrics import compute_run_metrics
 from app.schemas.research import ResearchRequest
 
 _LIST_DELTA_FIELDS = ("progress_events", "sources", "evidence", "errors", "verified_claims")
@@ -122,6 +123,11 @@ def run_research_graph(request: ResearchRequest) -> RivalScopeState:
                     final_report.confidence_score if final_report is not None else None
                 ),
             },
+        )
+        write_run_log(
+            run_id,
+            "run_metrics",
+            compute_run_metrics(state),
         )
         return state
     except Exception as exc:

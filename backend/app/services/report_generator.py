@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime, timezone
 
+from app.core.logging import log_run_event
 from app.schemas.report import (
     CompetitorReport,
     EvidenceItem,
@@ -126,22 +127,66 @@ def _build_fallback_report(
     )
 
 
+def _log_report_fallback(
+    run_id: str | None,
+    reason: str,
+    fallback_type: str,
+) -> None:
+    log_run_event(
+        run_id,
+        "report_generator_fallback_used",
+        {
+            "reason": reason,
+            "fallback_type": fallback_type,
+        },
+        logger=logger,
+        level=logging.WARNING,
+    )
+
+
 def generate_competitor_report(
     request: ResearchRequest,
     sources: list[Source],
     evidence: list[EvidenceItem],
     verified_claims: list[VerifiedClaim],
     warnings: list[str] | None = None,
+    *,
+    run_id: str | None = None,
 ) -> CompetitorReport:
     warnings = list(warnings or [])
     generated_at = datetime.now(timezone.utc).isoformat()
 
+    log_run_event(
+        run_id,
+        "report_generator_started",
+        {
+            "report_type": request.report_type.value,
+            "source_count": len(sources),
+            "evidence_count": len(evidence),
+            "verified_claim_count": len(verified_claims),
+            "warning_count": len(warnings),
+        },
+        logger=logger,
+    )
+
     if not evidence:
         logger.warning("report_generator: no evidence — falling back to mock report.")
+        _log_report_fallback(run_id, "no_evidence", "mock_report")
         mock = build_mock_report(request)
         mock.warnings = ["Real research returned no evidence."] + warnings
         mock.generated_at = generated_at
         mock.research_mode = "real"
+        log_run_event(
+            run_id,
+            "report_generator_completed",
+            {
+                "confidence_score": mock.confidence_score,
+                "used_fallback": True,
+                "fallback_type": "mock_report",
+            },
+            logger=logger,
+            level=logging.WARNING,
+        )
         return mock
 
     context = _build_context(request, sources, evidence, verified_claims)
@@ -167,12 +212,38 @@ def generate_competitor_report(
             type(exc).__name__,
         )
         warnings.append("Report generation failed — showing collected evidence only.")
-        return _build_fallback_report(request, sources, evidence, warnings, generated_at)
+        _log_report_fallback(run_id, type(exc).__name__, "evidence_only")
+        report = _build_fallback_report(request, sources, evidence, warnings, generated_at)
+        log_run_event(
+            run_id,
+            "report_generator_completed",
+            {
+                "confidence_score": report.confidence_score,
+                "used_fallback": True,
+                "fallback_type": "evidence_only",
+            },
+            logger=logger,
+            level=logging.WARNING,
+        )
+        return report
 
     if not isinstance(data, dict):
         logger.warning("report_generator: unexpected JSON type — using fallback report.")
         warnings.append("Report generation returned unexpected JSON — showing collected evidence only.")
-        return _build_fallback_report(request, sources, evidence, warnings, generated_at)
+        _log_report_fallback(run_id, "invalid_json_shape", "evidence_only")
+        report = _build_fallback_report(request, sources, evidence, warnings, generated_at)
+        log_run_event(
+            run_id,
+            "report_generator_completed",
+            {
+                "confidence_score": report.confidence_score,
+                "used_fallback": True,
+                "fallback_type": "evidence_only",
+            },
+            logger=logger,
+            level=logging.WARNING,
+        )
+        return report
 
     try:
         bc_raw = data.get("salesBattlecard") or data.get("sales_battlecard") or {}
@@ -231,12 +302,31 @@ def generate_competitor_report(
             type(exc).__name__,
         )
         warnings.append("Report schema construction failed — showing collected evidence only.")
-        return _build_fallback_report(request, sources, evidence, warnings, generated_at)
+        _log_report_fallback(run_id, type(exc).__name__, "evidence_only")
+        report = _build_fallback_report(request, sources, evidence, warnings, generated_at)
+        log_run_event(
+            run_id,
+            "report_generator_completed",
+            {
+                "confidence_score": report.confidence_score,
+                "used_fallback": True,
+                "fallback_type": "evidence_only",
+            },
+            logger=logger,
+            level=logging.WARNING,
+        )
+        return report
 
-    logger.info(
-        "report_generator: report built — %d source(s), %d evidence item(s), score=%.2f",
-        len(sources),
-        len(evidence),
-        report.confidence_score,
+    log_run_event(
+        run_id,
+        "report_generator_completed",
+        {
+            "confidence_score": report.confidence_score,
+            "used_fallback": False,
+            "source_count": len(sources),
+            "evidence_count": len(evidence),
+            "warning_count": len(warnings),
+        },
+        logger=logger,
     )
     return report

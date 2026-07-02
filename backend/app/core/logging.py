@@ -52,3 +52,18 @@ def write_run_log(run_id: str, event_type: str, payload: dict) -> None:
     }
     with RUN_LOG_FILE.open("a", encoding="utf-8") as log_file:
         log_file.write(json.dumps(record, default=str) + "\n")
+
+
+def log_run_event(
+    run_id: str | None,
+    event_type: str,
+    payload: dict,
+    *,
+    logger: logging.Logger | None = None,
+    level: int = logging.INFO,
+) -> None:
+    if run_id:
+        write_run_log(run_id, event_type, payload)
+    if logger is not None:
+        summary = ", ".join(f"{key}={value}" for key, value in payload.items())
+        logger.log(level, "%s | %s", event_type, summary)

@@ -1,7 +1,10 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
+from app.core.logging import get_logger, log_run_event
 from app.schemas.report import EvidenceItem, Source
+
+logger = get_logger(__name__)
 
 
 def detect_source_type(url: str, title: str, track: str) -> str:
@@ -99,6 +102,8 @@ def build_evidence_from_results(
     results: list[dict],
     track: str,
     source_type: str | None = None,
+    *,
+    run_id: str | None = None,
 ) -> tuple[list[Source], list[EvidenceItem]]:
     sources: list[Source] = []
     evidence_items: list[EvidenceItem] = []
@@ -111,5 +116,18 @@ def build_evidence_from_results(
         item = evidence_from_search_result(result, source, track)
         sources.append(source)
         evidence_items.append(item)
+
+    log_run_event(
+        run_id,
+        "evidence_built",
+        {
+            "track": track,
+            "input_result_count": len(results),
+            "source_count": len(sources),
+            "evidence_count": len(evidence_items),
+            "source_types": sorted({source.source_type for source in sources}),
+        },
+        logger=logger,
+    )
 
     return sources, evidence_items

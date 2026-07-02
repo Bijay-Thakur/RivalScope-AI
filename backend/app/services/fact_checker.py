@@ -1,6 +1,7 @@
 import logging
 from uuid import uuid4
 
+from app.core.logging import log_run_event
 from app.schemas.report import EvidenceItem, Source, VerifiedClaim
 from app.services.json_utils import extract_json_from_text, safe_get_message_text
 from app.services.llm import invoke_with_fallback
@@ -49,6 +50,8 @@ def verify_evidence_claims(
     evidence: list[EvidenceItem],
     sources: list[Source],
     max_claims: int = 10,
+    *,
+    run_id: str | None = None,
 ) -> list[VerifiedClaim]:
     if not evidence:
         return []
@@ -56,6 +59,17 @@ def verify_evidence_claims(
     batch = evidence[:max_claims]
     source_map = {s.id: s for s in sources}
     user_message = _build_evidence_packet(batch, source_map)
+
+    log_run_event(
+        run_id,
+        "fact_checker_started",
+        {
+            "evidence_count": len(evidence),
+            "claims_to_verify": len(batch),
+            "source_count": len(sources),
+        },
+        logger=logger,
+    )
 
     try:
         response = invoke_with_fallback(
@@ -71,14 +85,38 @@ def verify_evidence_claims(
             "Fact checker LLM call or parse failed [%s] — returning conservative claims.",
             type(exc).__name__,
         )
-        return _conservative_claims(batch)
+        results = _conservative_claims(batch)
+        log_run_event(
+            run_id,
+            "fact_checker_completed",
+            {
+                "verified_count": len(results),
+                "used_conservative_fallback": True,
+                "error_type": type(exc).__name__,
+            },
+            logger=logger,
+            level=logging.WARNING,
+        )
+        return results
 
     if isinstance(parsed, dict):
         parsed = parsed.get("checked_claims", [])
 
     if not isinstance(parsed, list):
         logger.warning("Fact checker returned non-list JSON — returning conservative claims.")
-        return _conservative_claims(batch)
+        results = _conservative_claims(batch)
+        log_run_event(
+            run_id,
+            "fact_checker_completed",
+            {
+                "verified_count": len(results),
+                "used_conservative_fallback": True,
+                "error_type": "invalid_json_shape",
+            },
+            logger=logger,
+            level=logging.WARNING,
+        )
+        return results
 
     results: list[VerifiedClaim] = []
     for item in parsed:
@@ -99,7 +137,34 @@ def verify_evidence_claims(
 
     if not results:
         logger.warning("Fact checker produced no valid claims — returning conservative claims.")
-        return _conservative_claims(batch)
+        results = _conservative_claims(batch)
+        log_run_event(
+            run_id,
+            "fact_checker_completed",
+            {
+                "verified_count": len(results),
+                "used_conservative_fallback": True,
+                "error_type": "empty_results",
+            },
+            logger=logger,
+            level=logging.WARNING,
+        )
+        return results
 
-    logger.info("Fact checker: %d claim(s) verified.", len(results))
+    status_counts: dict[str, int] = {}
+    for claim in results:
+        status_counts[claim.verification_status] = (
+            status_counts.get(claim.verification_status, 0) + 1
+        )
+
+    log_run_event(
+        run_id,
+        "fact_checker_completed",
+        {
+            "verified_count": len(results),
+            "used_conservative_fallback": False,
+            "verification_status_counts": status_counts,
+        },
+        logger=logger,
+    )
     return results

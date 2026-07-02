@@ -1,0 +1,542 @@
+[
+  {
+    "id": "task-001-clickup-notion",
+    "our_company": "ClickUp",
+    "competitor": "Notion",
+    "market": "Project management and all-in-one workspace",
+    "report_type": "sales_battlecard",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "ClickUp positions as an all-in-one productivity platform spanning tasks, docs, and goals",
+      "Notion positions as a flexible workspace built around docs, wikis, and databases",
+      "Both vendors offer tiered subscription plans for teams and enterprises",
+      "ClickUp emphasizes structured project management workflows and multiple views",
+      "Notion emphasizes customizable pages and lightweight database building blocks"
+    ],
+    "notes": "Classic workspace overlap; strong test for feature comparison and positioning nuance"
+  },
+  {
+    "id": "task-002-asana-monday",
+    "our_company": "Asana",
+    "competitor": "Monday.com",
+    "market": "Work management and team collaboration",
+    "report_type": "deep_research",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "Asana focuses on work orchestration, goals, and cross-functional project tracking",
+      "Monday.com emphasizes visual boards and configurable work operating systems",
+      "Both platforms support integrations with common SaaS tools",
+      "Both offer per-seat pricing models with multiple plan tiers",
+      "Enterprise plans typically include advanced security and admin controls"
+    ],
+    "notes": "Mature PM category with similar buyer personas and overlapping feature sets"
+  },
+  {
+    "id": "task-003-linear-jira",
+    "our_company": "Linear",
+    "competitor": "Jira",
+    "market": "Issue tracking and software development workflow",
+    "report_type": "quick_brief",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "Linear targets fast-moving product and engineering teams with a streamlined UX",
+      "Jira is widely used for agile issue tracking, roadmaps, and enterprise scale",
+      "Jira is part of the broader Atlassian ecosystem",
+      "Linear emphasizes speed, keyboard shortcuts, and opinionated workflows",
+      "Both support integrations with Git providers and CI/CD tooling"
+    ],
+    "notes": "Developer-tooling matchup; tests ability to contrast opinionated vs enterprise-flexible products"
+  },
+  {
+    "id": "task-004-slack-teams",
+    "our_company": "Slack",
+    "competitor": "Microsoft Teams",
+    "market": "Business messaging and team collaboration",
+    "report_type": "sales_battlecard",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "Slack positions as a channel-based messaging hub with a large app ecosystem",
+      "Microsoft Teams is bundled with Microsoft 365 and integrates deeply with Office apps",
+      "Teams offers native video meetings and calling within the Microsoft stack",
+      "Slack emphasizes third-party integrations and developer extensibility",
+      "Enterprise buyers often evaluate total cost within existing Microsoft agreements"
+    ],
+    "notes": "Platform bundling vs best-of-breed narrative is central to this comparison"
+  },
+  {
+    "id": "task-005-hubspot-salesforce",
+    "our_company": "HubSpot",
+    "competitor": "Salesforce",
+    "market": "CRM and revenue operations",
+    "report_type": "deep_research",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "HubSpot offers an integrated CRM with marketing, sales, and service hubs",
+      "Salesforce is a market-leading enterprise CRM with a broad cloud portfolio",
+      "HubSpot is often positioned for SMB and mid-market inbound growth teams",
+      "Salesforce emphasizes customization, AppExchange, and enterprise scalability",
+      "Both vendors publish tiered pricing with feature gates across plans"
+    ],
+    "notes": "Large-category CRM comparison; tests handling of multi-product suites"
+  },
+  {
+    "id": "task-006-datadog-newrelic",
+    "our_company": "Datadog",
+    "competitor": "New Relic",
+    "market": "Observability and application performance monitoring",
+    "report_type": "sales_battlecard",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "Datadog provides unified monitoring across infrastructure, APM, logs, and security signals",
+      "New Relic offers observability with emphasis on full-stack telemetry and usage-based pricing",
+      "Both platforms support cloud-native and hybrid deployment monitoring",
+      "DevOps and SRE teams are primary buyers for both solutions",
+      "Pricing models differ between host-based, usage-based, and data-ingest approaches"
+    ],
+    "notes": "Technical buyer audience; pricing model comparison matters more than exact dollar amounts"
+  },
+  {
+    "id": "task-007-stripe-adyen",
+    "our_company": "Stripe",
+    "competitor": "Adyen",
+    "market": "Payments infrastructure and merchant services",
+    "report_type": "deep_research",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "Stripe is known for developer-friendly APIs and broad online payment coverage",
+      "Adyen targets global enterprises with unified commerce across channels",
+      "Both support card payments and multiple local payment methods",
+      "Stripe emphasizes rapid integration for internet businesses and platforms",
+      "Adyen emphasizes single-platform global acquiring and unified reporting"
+    ],
+    "notes": "Fintech comparison; avoid asserting specific interchange or fee percentages"
+  },
+  {
+    "id": "task-008-zoominfo-apollo",
+    "our_company": "ZoomInfo",
+    "competitor": "Apollo",
+    "market": "B2B sales intelligence and prospecting",
+    "report_type": "sales_battlecard",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "ZoomInfo provides B2B contact and company data for enterprise sales teams",
+      "Apollo combines a contact database with outbound sequencing and engagement tools",
+      "Both platforms help reps build prospect lists and enrich account records",
+      "Data freshness and coverage depth are common evaluation criteria",
+      "ZoomInfo is often positioned for larger revenue organizations"
+    ],
+    "notes": "Data-vendor comparison; factual claims should stay qualitative"
+  },
+  {
+    "id": "task-009-figma-canva",
+    "our_company": "Figma",
+    "competitor": "Canva",
+    "market": "Design and visual collaboration",
+    "report_type": "quick_brief",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "Figma is built for collaborative UI/UX design with real-time multiplayer editing",
+      "Canva targets broad visual creation for marketing and non-designer users",
+      "Figma supports design systems, prototyping, and developer handoff workflows",
+      "Canva emphasizes templates, brand kits, and fast content production",
+      "Both offer team plans and enterprise offerings"
+    ],
+    "notes": "Overlapping 'design' label but different primary user personas"
+  },
+  {
+    "id": "task-010-snowflake-databricks",
+    "our_company": "Snowflake",
+    "competitor": "Databricks",
+    "market": "Cloud data platform and analytics",
+    "report_type": "deep_research",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "Snowflake offers a cloud data warehouse with separated storage and compute",
+      "Databricks provides a lakehouse platform centered on Apache Spark workloads",
+      "Both run on major public cloud providers",
+      "Data engineering and analytics teams are core buyers",
+      "Consumption-based pricing is common in both ecosystems"
+    ],
+    "notes": "Data platform overlap is nuanced; lakehouse vs warehouse positioning should be captured"
+  },
+  {
+    "id": "task-011-mongodb-postgresql",
+    "our_company": "MongoDB",
+    "competitor": "PostgreSQL",
+    "market": "Database and data persistence",
+    "report_type": "quick_brief",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "MongoDB offers a document-oriented database with flexible schema modeling",
+      "PostgreSQL is an open-source relational database with strong SQL and ACID support",
+      "MongoDB Atlas provides managed cloud database hosting",
+      "PostgreSQL is widely available via managed services and self-hosted deployments",
+      "Workload fit depends on data model, query patterns, and operational preferences"
+    ],
+    "notes": "Open-source vs commercial managed offering angle; avoid version-specific feature claims"
+  },
+  {
+    "id": "task-012-vercel-netlify",
+    "our_company": "Vercel",
+    "competitor": "Netlify",
+    "market": "Frontend cloud and Jamstack deployment",
+    "report_type": "sales_battlecard",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "Vercel is closely associated with Next.js and frontend performance optimization",
+      "Netlify pioneered Jamstack hosting with git-based deploys and edge functions",
+      "Both provide CI/CD, preview deployments, and global CDN delivery",
+      "Developer experience and framework integrations are key differentiators",
+      "Both offer free tiers and usage-based paid plans"
+    ],
+    "notes": "Developer platform comparison with strong docs and pricing_page source needs"
+  },
+  {
+    "id": "task-013-jira-linear",
+    "our_company": "Atlassian Jira",
+    "competitor": "Linear",
+    "market": "Agile project management for software teams",
+    "report_type": "sales_battlecard",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "Jira supports scrum, kanban, roadmaps, and deep workflow customization",
+      "Linear offers a fast, minimal issue tracking experience for product teams",
+      "Jira integrates with Confluence, Bitbucket, and the wider Atlassian suite",
+      "Linear focuses on reducing administrative overhead in issue management",
+      "Migration and change-management concerns often arise in competitive deals"
+    ],
+    "notes": "Reverse pairing of task-003 to test consistency across swapped perspectives"
+  },
+  {
+    "id": "task-014-intercom-zendesk",
+    "our_company": "Intercom",
+    "competitor": "Zendesk",
+    "market": "Customer support and conversational engagement",
+    "report_type": "deep_research",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "Intercom emphasizes proactive messaging, bots, and product-led support",
+      "Zendesk provides ticketing, help center, and omnichannel customer service",
+      "Both support live chat and automation for customer conversations",
+      "AI-assisted support features are increasingly part of both roadmaps",
+      "Seat-based and usage-based pricing components may apply depending on plan"
+    ],
+    "notes": "CX platform overlap with different roots in messaging vs ticketing"
+  },
+  {
+    "id": "task-015-copilot-cursor",
+    "our_company": "GitHub Copilot",
+    "competitor": "Cursor",
+    "market": "AI-assisted software development",
+    "report_type": "quick_brief",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "GitHub Copilot provides inline code suggestions inside supported IDEs",
+      "Cursor is an AI-native code editor built around chat and codebase context",
+      "Both leverage large language models for code generation and explanation",
+      "Developer productivity and code quality are primary value propositions",
+      "Enterprise buyers evaluate data privacy, IP, and compliance policies"
+    ],
+    "notes": "Fast-moving AI dev tools category; recent_moves section should be exercised"
+  },
+  {
+    "id": "task-016-openai-anthropic",
+    "our_company": "OpenAI",
+    "competitor": "Anthropic",
+    "market": "Foundation models and enterprise AI APIs",
+    "report_type": "deep_research",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "OpenAI offers GPT models via API and consumer-facing ChatGPT products",
+      "Anthropic offers Claude models with emphasis on safety and long-context use cases",
+      "Both provide API access for developers and enterprise agreements",
+      "Model capabilities, context windows, and tool use are common comparison axes",
+      "Pricing is typically token-based or subscription-based depending on product line"
+    ],
+    "notes": "Model-provider landscape changes quickly; facts should remain durable at a high level"
+  },
+  {
+    "id": "task-017-perplexity-chatgpt",
+    "our_company": "Perplexity",
+    "competitor": "ChatGPT",
+    "market": "AI search and conversational assistants",
+    "report_type": "quick_brief",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "Perplexity positions as an answer engine with cited web sources",
+      "ChatGPT is a general-purpose conversational AI assistant from OpenAI",
+      "Perplexity emphasizes real-time retrieval and source attribution",
+      "ChatGPT supports plugins, custom GPTs, and multimodal interactions",
+      "Consumer and prosumer subscription tiers exist for both products"
+    ],
+    "notes": "Tests citation and source-quality expectations in AI assistant comparisons"
+  },
+  {
+    "id": "task-018-shopify-bigcommerce",
+    "our_company": "Shopify",
+    "competitor": "BigCommerce",
+    "market": "E-commerce platform and online storefronts",
+    "report_type": "sales_battlecard",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "Shopify powers online stores with themes, payments, and an app marketplace",
+      "BigCommerce offers multi-channel commerce with flexible catalog management",
+      "Both support B2C and B2B commerce scenarios at various scales",
+      "Total cost of ownership includes platform fees, apps, and payment processing",
+      "Merchant migration, SEO, and checkout customization are common deal topics"
+    ],
+    "notes": "Commerce platform battlecard; pricing_intelligence should describe models not exact fees"
+  },
+  {
+    "id": "task-019-airtable-smartsheet",
+    "our_company": "Airtable",
+    "competitor": "Smartsheet",
+    "market": "Collaborative work management and structured data",
+    "report_type": "deep_research",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "Airtable combines spreadsheets, databases, and lightweight app building",
+      "Smartsheet focuses on enterprise work management with sheets, reports, and automation",
+      "Both support cross-team collaboration on structured work data",
+      "Airtable appeals to ops and business teams needing flexible data apps",
+      "Smartsheet emphasizes program management, governance, and scale"
+    ],
+    "notes": "Spreadsheet-adjacent tools with different enterprise maturity positioning"
+  },
+  {
+    "id": "task-020-gong-clari",
+    "our_company": "Gong",
+    "competitor": "Clari",
+    "market": "Revenue intelligence and sales execution",
+    "report_type": "sales_battlecard",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "Gong captures and analyzes sales conversations for coaching and deal insights",
+      "Clari provides revenue forecasting, pipeline inspection, and deal execution workflows",
+      "Both target sales leaders and revenue operations teams",
+      "Conversation intelligence and pipeline visibility are complementary but overlapping needs",
+      "CRM integration is a baseline requirement for both platforms"
+    ],
+    "notes": "RevOps category; sales_battlecard section is especially relevant"
+  }
+]

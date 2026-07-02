@@ -3,6 +3,7 @@ import logging
 from langchain_tavily import TavilyExtract, TavilySearch
 
 from app.core.config import settings
+from app.core.logging import log_run_event
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +26,19 @@ def _normalize_search_item(item: dict) -> dict:
     }
 
 
-def search_web(query: str, max_results: int = 5) -> list[dict]:
+def search_web(
+    query: str,
+    max_results: int = 5,
+    *,
+    run_id: str | None = None,
+    track: str | None = None,
+) -> list[dict]:
     require_tavily_key()
+
+    started_payload: dict = {"query": query, "max_results": max_results}
+    if track:
+        started_payload["track"] = track
+    log_run_event(run_id, "search_query_started", started_payload, logger=logger)
 
     tool = TavilySearch(
         max_results=max_results,
@@ -36,6 +48,19 @@ def search_web(query: str, max_results: int = 5) -> list[dict]:
     try:
         raw = tool.invoke({"query": query})
     except Exception as exc:
+        failed_payload: dict = {
+            "query": query,
+            "error_type": type(exc).__name__,
+        }
+        if track:
+            failed_payload["track"] = track
+        log_run_event(
+            run_id,
+            "search_query_failed",
+            failed_payload,
+            logger=logger,
+            level=logging.WARNING,
+        )
         raise RuntimeError(
             f"Tavily search failed for query '{query}': {type(exc).__name__}"
         ) from exc
@@ -48,7 +73,14 @@ def search_web(query: str, max_results: int = 5) -> list[dict]:
         items = []
 
     normalized = [_normalize_search_item(item) for item in items if isinstance(item, dict)]
-    logger.info("search_web: %d result(s) for query '%s'", len(normalized), query)
+    completed_payload: dict = {
+        "query": query,
+        "result_count": len(normalized),
+        "max_results": max_results,
+    }
+    if track:
+        completed_payload["track"] = track
+    log_run_event(run_id, "search_query_completed", completed_payload, logger=logger)
     return normalized
 
 

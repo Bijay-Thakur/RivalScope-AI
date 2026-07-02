@@ -1,5 +1,6 @@
 import logging
 
+from app.core.logging import log_run_event
 from app.schemas.report import EvidenceItem, Source
 from app.schemas.research import ResearchRequest
 from app.services.evidence import build_evidence_from_results
@@ -21,6 +22,8 @@ def run_research_track(
     queries: list[str],
     source_type: str | None = None,
     max_results_per_query: int = 3,
+    *,
+    run_id: str | None = None,
 ) -> dict:
     all_raw: list[dict] = []
     warnings: list[str] = []
@@ -28,7 +31,12 @@ def run_research_track(
 
     for query in queries:
         try:
-            results = search_web(query, max_results=max_results_per_query)
+            results = search_web(
+                query,
+                max_results=max_results_per_query,
+                run_id=run_id,
+                track=track,
+            )
             all_raw.extend(results)
             logger.debug("Track '%s' query returned %d result(s): %s", track, len(results), query)
         except Exception as exc:
@@ -44,7 +52,12 @@ def run_research_track(
         return {"sources": [], "evidence": [], "warnings": warnings}
 
     deduped = dedupe_urls(all_raw)
-    sources, evidence = build_evidence_from_results(deduped, track, source_type)
+    sources, evidence = build_evidence_from_results(
+        deduped,
+        track,
+        source_type,
+        run_id=run_id,
+    )
 
     logger.info(
         "Track '%s': %d source(s), %d evidence item(s) from %d deduplicated result(s)",
@@ -56,7 +69,11 @@ def run_research_track(
     return {"sources": sources, "evidence": evidence, "warnings": warnings}
 
 
-def run_all_basic_tracks(request: ResearchRequest) -> dict:
+def run_all_basic_tracks(
+    request: ResearchRequest,
+    *,
+    run_id: str | None = None,
+) -> dict:
     all_queries = build_all_queries(request)
 
     all_sources: list[Source] = []
@@ -69,6 +86,7 @@ def run_all_basic_tracks(request: ResearchRequest) -> dict:
             track=track,
             queries=queries,
             source_type=source_type,
+            run_id=run_id,
         )
         all_sources.extend(result["sources"])
         all_evidence.extend(result["evidence"])

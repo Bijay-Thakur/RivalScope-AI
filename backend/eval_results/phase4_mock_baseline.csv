@@ -1,0 +1,6 @@
+task_id,overall_score,task_completion,section_coverage,source_coverage,citation_integrity,evidence_count,source_count,latency_seconds,warnings_count,failure_notes
+task-001-clickup-notion,0.9200,1.0000,1.0000,0.6000,1.0000,5,5,0.03,0,Expected source type 'news' not found in report sources | Expected source type 'docs' not found in report sources
+task-002-asana-monday,0.9200,1.0000,1.0000,0.6000,1.0000,5,5,0.03,0,Expected source type 'news' not found in report sources | Expected source type 'docs' not found in report sources
+task-003-linear-jira,0.9200,1.0000,1.0000,0.6000,1.0000,5,5,0.02,0,Expected source type 'news' not found in report sources | Expected source type 'docs' not found in report sources
+task-004-slack-teams,0.9200,1.0000,1.0000,0.6000,1.0000,5,5,0.03,0,Expected source type 'news' not found in report sources | Expected source type 'docs' not found in report sources
+task-005-hubspot-salesforce,0.9200,1.0000,1.0000,0.6000,1.0000,5,5,0.02,0,Expected source type 'news' not found in report sources | Expected source type 'docs' not found in report sources
