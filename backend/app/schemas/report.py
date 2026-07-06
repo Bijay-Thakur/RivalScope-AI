@@ -57,7 +57,7 @@ class CompetitorReport(BaseModel):
     sales_battlecard: SalesBattlecard = Field(alias="salesBattlecard")
     evidence: list[EvidenceItem]
     sources: list[Source]
-    confidence_score: float = Field(alias="confidenceScore")
+    confidence_score: float = Field(alias="confidenceScore", ge=0, le=100)
     generated_at: str | None = None
     research_mode: str | None = None
     warnings: list[str] = []

@@ -1,5 +1,7 @@
 # dependencies
 frontend/node_modules/
+frontend/.npmrc
+.npm-cache/
 frontend/.pnp
 frontend/.pnp.*
 frontend/.yarn/*
@@ -51,6 +53,10 @@ backend/build/
 # logs (keep .gitkeep)
 backend/app/logs/*.log
 backend/app/logs/*.jsonl
+
+# grounding eval results (keep .gitkeep)
+backend/evals/results/*.json
+!backend/evals/results/.gitkeep
 
 # IDE
 .qodo/

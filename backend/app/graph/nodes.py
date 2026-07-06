@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any
 
 from app.core.config import settings
@@ -54,6 +55,7 @@ def _with_progress(
     message: str,
     status: str = "completed",
 ) -> tuple[str, list[ProgressEvent]]:
+    """Return (current_step, [new_event]) — a reducer DELTA, not the full history."""
     event = _progress_event(
         state,
         step=_step_index(step_name),
@@ -61,7 +63,7 @@ def _with_progress(
         message=message,
         status=status,
     )
-    return step_name, [*state["progress_events"], event]
+    return step_name, [event]
 
 
 # ---------------------------------------------------------------------------
@@ -150,7 +152,7 @@ def _mock_source(source_id: str, title: str, source_type: str) -> Source:
 # Real-mode track helper
 # ---------------------------------------------------------------------------
 
-def _run_track(
+async def _run_track(
     state: RivalScopeState,
     track: str,
     step_name: str,
@@ -159,7 +161,8 @@ def _run_track(
 ) -> PartialState:
     queries = build_all_queries(state["request"])[track]
     try:
-        result = run_research_track(
+        result = await asyncio.to_thread(
+            run_research_track,
             track=track,
             queries=queries,
             source_type=source_type,
@@ -181,9 +184,9 @@ def _run_track(
     return {
         "current_step": step,
         "progress_events": events,
-        "sources": [*state["sources"], *new_sources],
-        "evidence": [*state["evidence"], *new_evidence],
-        "errors": [*state["errors"], *new_warnings],
+        "sources": new_sources,
+        "evidence": new_evidence,
+        "errors": new_warnings,
     }
 
 
@@ -191,11 +194,11 @@ def _run_track(
 # Track nodes
 # ---------------------------------------------------------------------------
 
-def company_profile_track(state: RivalScopeState) -> PartialState:
+async def company_profile_track(state: RivalScopeState) -> PartialState:
     rival = state["request"].competitor
 
     if is_real_mode():
-        return _run_track(state, "company_profile", "company_profile_track", rival)
+        return await _run_track(state, "company_profile", "company_profile_track", rival)
 
     source = _mock_source(
         "src-company-profile",
@@ -217,16 +220,16 @@ def company_profile_track(state: RivalScopeState) -> PartialState:
     return {
         "current_step": step,
         "progress_events": events,
-        "sources": [*state["sources"], source],
-        "evidence": [*state["evidence"], evidence],
+        "sources": [source],
+        "evidence": [evidence],
     }
 
 
-def product_track(state: RivalScopeState) -> PartialState:
+async def product_track(state: RivalScopeState) -> PartialState:
     rival = state["request"].competitor
 
     if is_real_mode():
-        return _run_track(state, "product_features", "product_track", rival)
+        return await _run_track(state, "product_features", "product_track", rival)
 
     source = _mock_source(
         "src-product",
@@ -248,16 +251,16 @@ def product_track(state: RivalScopeState) -> PartialState:
     return {
         "current_step": step,
         "progress_events": events,
-        "sources": [*state["sources"], source],
-        "evidence": [*state["evidence"], evidence],
+        "sources": [source],
+        "evidence": [evidence],
     }
 
 
-def pricing_track(state: RivalScopeState) -> PartialState:
+async def pricing_track(state: RivalScopeState) -> PartialState:
     rival = state["request"].competitor
 
     if is_real_mode():
-        return _run_track(state, "pricing", "pricing_track", rival, source_type="pricing_page")
+        return await _run_track(state, "pricing", "pricing_track", rival, source_type="pricing_page")
 
     source = _mock_source(
         "src-pricing",
@@ -279,16 +282,16 @@ def pricing_track(state: RivalScopeState) -> PartialState:
     return {
         "current_step": step,
         "progress_events": events,
-        "sources": [*state["sources"], source],
-        "evidence": [*state["evidence"], evidence],
+        "sources": [source],
+        "evidence": [evidence],
     }
 
 
-def news_track(state: RivalScopeState) -> PartialState:
+async def news_track(state: RivalScopeState) -> PartialState:
     rival = state["request"].competitor
 
     if is_real_mode():
-        return _run_track(state, "recent_news", "news_track", rival, source_type="news")
+        return await _run_track(state, "recent_news", "news_track", rival, source_type="news")
 
     source = _mock_source(
         "src-news",
@@ -310,8 +313,8 @@ def news_track(state: RivalScopeState) -> PartialState:
     return {
         "current_step": step,
         "progress_events": events,
-        "sources": [*state["sources"], source],
-        "evidence": [*state["evidence"], evidence],
+        "sources": [source],
+        "evidence": [evidence],
     }
 
 
@@ -319,10 +322,11 @@ def news_track(state: RivalScopeState) -> PartialState:
 # Fact checker
 # ---------------------------------------------------------------------------
 
-def fact_checker_stub(state: RivalScopeState) -> PartialState:
+async def fact_checker_stub(state: RivalScopeState) -> PartialState:
     if is_real_mode():
         try:
-            verified = verify_evidence_claims(
+            verified = await asyncio.to_thread(
+                verify_evidence_claims,
                 evidence=state["evidence"],
                 sources=state["sources"],
                 run_id=state["run_id"],
@@ -338,7 +342,7 @@ def fact_checker_stub(state: RivalScopeState) -> PartialState:
                 "current_step": step,
                 "progress_events": events,
                 "verified_claims": verified,
-                "errors": [*state["errors"], msg],
+                "errors": [msg],
             }
 
         step, events = _with_progress(
@@ -382,7 +386,7 @@ def fact_checker_stub(state: RivalScopeState) -> PartialState:
 # Report generator
 # ---------------------------------------------------------------------------
 
-def report_generator(state: RivalScopeState) -> PartialState:
+async def report_generator(state: RivalScopeState) -> PartialState:
     logger.info(
         "Generating %s report for %s vs %s (step %s/%s)",
         "real" if is_real_mode() else "mock",
@@ -394,7 +398,8 @@ def report_generator(state: RivalScopeState) -> PartialState:
 
     if is_real_mode():
         try:
-            report = generate_competitor_report(
+            report = await asyncio.to_thread(
+                generate_competitor_report,
                 request=state["request"],
                 sources=state["sources"],
                 evidence=state["evidence"],

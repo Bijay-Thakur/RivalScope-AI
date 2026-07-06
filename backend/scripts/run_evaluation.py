@@ -11,6 +11,7 @@ Real mode consumes Groq and Tavily credits.
 from __future__ import annotations
 
 import argparse
+import asyncio
 import io
 import sys
 from pathlib import Path
@@ -62,10 +63,18 @@ def _print_mode_notice() -> None:
         print("[INFO] RESEARCH_MODE=mock — no external API keys required.")
 
 
-def main() -> None:
+async def _run(args: argparse.Namespace):
     from app.evaluation.report_writer import write_experiment_results
     from app.evaluation.runner import run_evaluation
 
+    result = await run_evaluation(
+        experiment_name=args.experiment_name,
+        max_tasks=args.max_tasks,
+    )
+    return result, write_experiment_results(result)
+
+
+def main() -> None:
     args = _parse_args()
     _print_mode_notice()
 
@@ -74,11 +83,7 @@ def main() -> None:
         f"max_tasks={args.max_tasks!r}\n"
     )
 
-    result = run_evaluation(
-        experiment_name=args.experiment_name,
-        max_tasks=args.max_tasks,
-    )
-    output_paths = write_experiment_results(result)
+    result, output_paths = asyncio.run(_run(args))
 
     print("\n" + "=" * 62)
     print("  EVALUATION SUMMARY")

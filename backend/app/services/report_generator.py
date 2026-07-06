@@ -120,7 +120,7 @@ def _build_fallback_report(
         ),
         evidence=evidence,
         sources=sources,
-        confidence_score=0.6,
+        confidence_score=45.0,
         generated_at=generated_at,
         research_mode="real",
         warnings=warnings + ["Report synthesis failed — showing collected evidence only."],
@@ -176,6 +176,7 @@ def generate_competitor_report(
         mock.warnings = ["Real research returned no evidence."] + warnings
         mock.generated_at = generated_at
         mock.research_mode = "real"
+        mock.confidence_score = 15.0  # no evidence at all — should not inherit mock's demo score
         log_run_event(
             run_id,
             "report_generator_completed",
@@ -255,14 +256,14 @@ def generate_competitor_report(
             landmines=_safe_list(bc_raw.get("landmines"), []),
         )
 
-        raw_score = data.get("confidenceScore") or data.get("confidence_score") or 0.5
+        raw_score = data.get("confidenceScore") or data.get("confidence_score") or 50
         try:
             score = float(raw_score)
-            if score > 1.0:
-                score = score / 100.0
-            score = max(0.0, min(1.0, score))
+            if 0 < score <= 1.0:
+                score = score * 100.0  # tolerate a model returning a 0-1 fraction despite the prompt
+            score = max(0.0, min(100.0, score))
         except (TypeError, ValueError):
-            score = 0.5
+            score = 50.0
 
         pricing = (
             data.get("pricingIntelligence")

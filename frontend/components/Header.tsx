@@ -2,12 +2,12 @@ import { ProductLabel } from "./ProductLabel";
 
 export function Header() {
   return (
-    <header className="border-b border-stone-200 bg-white">
+    <header className="border-b border-neutral-800 bg-neutral-950">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 py-8 sm:py-10 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-stone-800 text-amber-100">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-neutral-800 bg-neutral-900 text-amber-400">
                 <svg
                   className="h-5 w-5"
                   fill="none"
@@ -31,10 +31,10 @@ export function Header() {
               <ProductLabel tone="gold">Source-Grounded Brief</ProductLabel>
             </div>
 
-            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-stone-900 sm:text-4xl">
+            <h1 className="mt-4 text-3xl font-semibold tracking-tight text-neutral-100 sm:text-4xl">
               RivalScope AI
             </h1>
-            <p className="mt-2 text-base leading-relaxed text-stone-600 sm:text-lg">
+            <p className="mt-2 text-base leading-relaxed text-neutral-400 sm:text-lg">
               Source-grounded competitive intelligence briefs for GTM teams
             </p>
           </div>
@@ -52,7 +52,7 @@ export function Header() {
 
 function StatPill({ label }: { label: string }) {
   return (
-    <span className="inline-flex items-center rounded-full border border-stone-200 bg-stone-50 px-3 py-1.5 text-xs text-stone-600">
+    <span className="inline-flex items-center rounded-full border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-xs text-neutral-400">
       {label}
     </span>
   );

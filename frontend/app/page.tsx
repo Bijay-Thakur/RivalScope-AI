@@ -1,21 +1,30 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { Dashboard } from "@/components/Dashboard";
+import { useRouter } from "next/navigation";
+import { AgentTrackerModal } from "@/components/AgentTrackerModal";
+import { ProductLabel } from "@/components/ProductLabel";
+import { ResearchForm } from "@/components/ResearchForm";
 import {
   buildResearchStreamUrl,
   parseStreamReport,
   type StreamProgressEvent,
 } from "@/lib/api";
-import type { CompetitorReport, ResearchInput } from "@/types/report";
+import { saveReport } from "@/lib/reportStore";
+import type { ResearchInput } from "@/types/report";
+
+const REDIRECT_DELAY_MS = 700;
 
 export default function Home() {
+  const router = useRouter();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [progressMessage, setProgressMessage] = useState<string | null>(null);
-  const [showReport, setShowReport] = useState(false);
-  const [report, setReport] = useState<CompetitorReport | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [runLabel, setRunLabel] = useState<{ ourCompany: string; competitor: string } | null>(
+    null,
+  );
   const eventSourceRef = useRef<EventSource | null>(null);
   const completedRef = useRef(false);
 
@@ -24,16 +33,22 @@ export default function Home() {
     eventSourceRef.current = null;
   }, []);
 
+  const handleClose = useCallback(() => {
+    closeStream();
+    setIsModalOpen(false);
+    setIsRunning(false);
+  }, [closeStream]);
+
   const handleSubmit = useCallback(
     (input: ResearchInput) => {
       closeStream();
       completedRef.current = false;
       setError(null);
-      setShowReport(false);
-      setReport(null);
       setProgressMessage(null);
+      setCompletedSteps([]);
+      setRunLabel({ ourCompany: input.ourCompany, competitor: input.competitor });
+      setIsModalOpen(true);
       setIsRunning(true);
-      setCurrentStep(0);
 
       const url = buildResearchStreamUrl(input);
       const eventSource = new EventSource(url);
@@ -41,17 +56,22 @@ export default function Home() {
 
       eventSource.addEventListener("progress", (event) => {
         const data = JSON.parse(event.data) as StreamProgressEvent;
-        setCurrentStep(data.step);
+        // Parallel research tracks (steps 3-6) can complete out of order — accumulate
+        // instead of overwriting a single "current step" number.
+        setCompletedSteps((prev) => (prev.includes(data.step) ? prev : [...prev, data.step]));
         setProgressMessage(data.message);
       });
 
       eventSource.addEventListener("final_report", (event) => {
         completedRef.current = true;
         const raw = JSON.parse(event.data) as Record<string, unknown>;
-        setReport(parseStreamReport(raw));
-        setShowReport(true);
+        const report = parseStreamReport(raw);
         closeStream();
         setIsRunning(false);
+        saveReport(report);
+        window.setTimeout(() => {
+          router.push("/report");
+        }, REDIRECT_DELAY_MS);
       });
 
       eventSource.addEventListener("error", (event) => {
@@ -78,18 +98,35 @@ export default function Home() {
         setIsRunning(false);
       };
     },
-    [closeStream],
+    [closeStream, router],
   );
 
   return (
-    <Dashboard
-      isRunning={isRunning}
-      currentStep={currentStep}
-      progressMessage={progressMessage}
-      showReport={showReport}
-      report={report}
-      error={error}
-      onSubmit={handleSubmit}
-    />
+    <>
+      <main className="mx-auto max-w-3xl px-4 pb-16 pt-10 sm:px-6 sm:pt-14 lg:px-8">
+        <div className="mb-8 text-center sm:mb-10">
+          <ProductLabel tone="gold">Input & Workflow</ProductLabel>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-neutral-100 sm:text-3xl">
+            Configure your research
+          </h1>
+          <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-neutral-500">
+            Set the competitive parameters below. A live agent pipeline gathers
+            evidence, verifies claims, and writes a source-grounded brief.
+          </p>
+        </div>
+
+        <ResearchForm onSubmit={handleSubmit} isRunning={isRunning} />
+      </main>
+
+      <AgentTrackerModal
+        isOpen={isModalOpen}
+        isRunning={isRunning}
+        completedSteps={completedSteps}
+        progressMessage={progressMessage}
+        error={error}
+        runLabel={runLabel}
+        onClose={handleClose}
+      />
+    </>
   );
 }

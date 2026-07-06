@@ -1,0 +1,12 @@
+[
+  {"ourCompany": "ClickUp", "competitor": "Notion", "market": "Project management and docs", "reportType": "sales_battlecard"},
+  {"ourCompany": "Stripe", "competitor": "Adyen", "market": "Payments infrastructure", "reportType": "deep_research"},
+  {"ourCompany": "Datadog", "competitor": "New Relic", "market": "Observability and APM", "reportType": "quick_brief"},
+  {"ourCompany": "Figma", "competitor": "Sketch", "market": "UI design tools", "reportType": "sales_battlecard"},
+  {"ourCompany": "Vercel", "competitor": "Netlify", "market": "Frontend cloud and hosting", "reportType": "deep_research"},
+  {"ourCompany": "Snowflake", "competitor": "Databricks", "market": "Cloud data platform", "reportType": "quick_brief"},
+  {"ourCompany": "HubSpot", "competitor": "Salesforce", "market": "CRM and marketing software", "reportType": "sales_battlecard"},
+  {"ourCompany": "Linear", "competitor": "Jira", "market": "Issue tracking for software teams", "reportType": "deep_research"},
+  {"ourCompany": "Slack", "competitor": "Microsoft Teams", "market": "Team messaging and collaboration", "reportType": "quick_brief"},
+  {"ourCompany": "Zoom", "competitor": "Google Meet", "market": "Video conferencing", "reportType": "sales_battlecard"}
+]

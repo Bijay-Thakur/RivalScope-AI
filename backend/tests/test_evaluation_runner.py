@@ -18,8 +18,8 @@ def clear_api_keys(monkeypatch):
     monkeypatch.setattr(settings, "tavily_api_key", None)
 
 
-def test_run_evaluation_works_in_mock_mode_with_max_tasks():
-    result = run_evaluation(
+async def test_run_evaluation_works_in_mock_mode_with_max_tasks():
+    result = await run_evaluation(
         experiment_name="phase4_test_mock",
         max_tasks=1,
     )

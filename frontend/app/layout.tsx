@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Header } from "@/components/Header";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -26,9 +27,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-stone-50 font-sans text-stone-800 antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col bg-neutral-950 font-sans text-neutral-200 antialiased`}
       >
-        {children}
+        <Header />
+        <div className="flex-1">{children}</div>
+        <footer className="border-t border-neutral-800 bg-neutral-950 py-8 text-center">
+          <p className="text-xs text-neutral-500">
+            RivalScope AI — Portfolio demo · Mock data via local backend
+          </p>
+        </footer>
       </body>
     </html>
   );

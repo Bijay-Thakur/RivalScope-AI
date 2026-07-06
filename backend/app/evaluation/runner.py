@@ -38,12 +38,12 @@ def _failed_task_score(
     )
 
 
-def _run_single_task(task: BenchmarkTask) -> TaskScore:
+async def _run_single_task(task: BenchmarkTask) -> TaskScore:
     request = _benchmark_task_to_request(task)
     started_at = time.perf_counter()
 
     try:
-        state = run_research_graph(request)
+        state = await run_research_graph(request)
     except Exception as exc:
         latency_seconds = time.perf_counter() - started_at
         return _failed_task_score(
@@ -75,7 +75,7 @@ def _run_single_task(task: BenchmarkTask) -> TaskScore:
     )
 
 
-def run_evaluation(
+async def run_evaluation(
     experiment_name: str = "phase4_baseline",
     max_tasks: int | None = None,
 ) -> ExperimentResult:
@@ -83,7 +83,7 @@ def run_evaluation(
     if max_tasks is not None:
         tasks = tasks[:max_tasks]
 
-    task_scores = [_run_single_task(task) for task in tasks]
+    task_scores = [await _run_single_task(task) for task in tasks]
     total_tasks = len(task_scores)
 
     if total_tasks == 0:

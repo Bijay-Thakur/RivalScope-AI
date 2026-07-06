@@ -11,14 +11,14 @@ interface ReportPreviewProps {
 export function ReportPreview({ report }: ReportPreviewProps) {
   return (
     <article className="space-y-5 sm:space-y-6">
-      <header className={`${PANEL_CLASS} ${PANEL_PADDING} border-amber-200/60 bg-gradient-to-br from-white to-amber-50/40`}>
+      <header className={`${PANEL_CLASS} ${PANEL_PADDING} border-t-2 border-t-amber-500/50`}>
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div className="min-w-0 flex-1">
             <ProductLabel tone="gold">Source-Grounded Brief</ProductLabel>
-            <h2 className="mt-2 text-xl font-semibold tracking-tight text-stone-900 sm:text-2xl">
+            <h2 className="mt-2 text-xl font-semibold tracking-tight text-neutral-100 sm:text-2xl">
               Competitive Intelligence Report
             </h2>
-            <p className="mt-2 max-w-lg text-sm leading-relaxed text-stone-600">
+            <p className="mt-2 max-w-lg text-sm leading-relaxed text-neutral-400">
               Evidence-linked analysis for GTM review. Share with sales, product
               marketing, or leadership ahead of your next competitive deal.
             </p>
@@ -72,32 +72,33 @@ export function ReportPreview({ report }: ReportPreviewProps) {
 }
 
 function ConfidenceBadge({ score }: { score: number }) {
+  const rounded = Math.round(score);
   const tier =
-    score >= 90 ? "high" : score >= 80 ? "strong" : score >= 70 ? "moderate" : "low";
+    rounded >= 90 ? "high" : rounded >= 80 ? "strong" : rounded >= 70 ? "moderate" : "low";
 
   const styles = {
     high: {
-      border: "border-amber-200",
-      bg: "bg-amber-50",
-      text: "text-amber-900",
+      border: "border-amber-500/30",
+      bg: "bg-amber-500/10",
+      text: "text-amber-400",
       label: "High confidence",
     },
     strong: {
-      border: "border-stone-300",
-      bg: "bg-stone-50",
-      text: "text-stone-800",
+      border: "border-neutral-700",
+      bg: "bg-neutral-800/60",
+      text: "text-neutral-200",
       label: "Strong confidence",
     },
     moderate: {
-      border: "border-stone-200",
-      bg: "bg-white",
-      text: "text-stone-600",
+      border: "border-neutral-800",
+      bg: "bg-neutral-900",
+      text: "text-neutral-400",
       label: "Moderate confidence",
     },
     low: {
-      border: "border-stone-200",
-      bg: "bg-stone-50",
-      text: "text-stone-500",
+      border: "border-neutral-800",
+      bg: "bg-neutral-800/40",
+      text: "text-neutral-500",
       label: "Low confidence",
     },
   }[tier];
@@ -107,9 +108,9 @@ function ConfidenceBadge({ score }: { score: number }) {
       className={`flex shrink-0 flex-col items-center rounded-xl border px-5 py-3.5 ${styles.border} ${styles.bg}`}
     >
       <span className={`text-3xl font-bold tabular-nums tracking-tight ${styles.text}`}>
-        {score}
+        {rounded}%
       </span>
-      <span className="mt-0.5 text-[11px] font-medium uppercase tracking-wider text-stone-500">
+      <span className="mt-0.5 text-[11px] font-medium uppercase tracking-wider text-neutral-500">
         Confidence
       </span>
       <span className={`mt-1 text-xs font-medium ${styles.text}`}>{styles.label}</span>
@@ -121,7 +122,7 @@ function TextSection({ title, content }: { title: string; content: string }) {
   return (
     <section className={`${PANEL_CLASS} ${PANEL_PADDING}`}>
       <SectionHeading title={title} />
-      <p className="text-[0.9375rem] leading-[1.75] text-stone-700">{content}</p>
+      <p className="text-[0.9375rem] leading-[1.75] text-neutral-300">{content}</p>
     </section>
   );
 }
@@ -142,13 +143,13 @@ function ListSection({
         {items.map((item, index) => (
           <li
             key={`${title}-${index}`}
-            className="flex gap-3 rounded-lg border border-stone-200 bg-stone-50/50 px-4 py-3.5"
+            className="flex gap-3 rounded-lg border border-neutral-800 bg-neutral-800/40 px-4 py-3.5"
           >
             <span
-              className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-700"
+              className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500"
               aria-hidden="true"
             />
-            <p className="text-[0.9375rem] leading-[1.65] text-stone-700">{item}</p>
+            <p className="text-[0.9375rem] leading-[1.65] text-neutral-300">{item}</p>
           </li>
         ))}
       </ul>
@@ -165,9 +166,9 @@ function SectionHeading({
 }) {
   return (
     <div className="mb-4 sm:mb-5">
-      <h3 className="text-base font-semibold tracking-tight text-stone-900">{title}</h3>
+      <h3 className="text-base font-semibold tracking-tight text-neutral-100">{title}</h3>
       {description && (
-        <p className="mt-1 text-xs leading-relaxed text-stone-500">{description}</p>
+        <p className="mt-1 text-xs leading-relaxed text-neutral-500">{description}</p>
       )}
     </div>
   );
@@ -186,8 +187,8 @@ function ReportMeta({
     researchMode === "real" ? "Research mode: real" : "Research mode: mock";
   const modeStyles =
     researchMode === "real"
-      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-      : "bg-amber-50 text-amber-700 border-amber-200";
+      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+      : "bg-amber-500/10 text-amber-400 border-amber-500/30";
 
   let formattedDate: string | undefined;
   if (generatedAt) {
@@ -211,7 +212,7 @@ function ReportMeta({
         </span>
       )}
       {formattedDate && (
-        <span className="text-[11px] text-stone-400">
+        <span className="text-[11px] text-neutral-600">
           Generated at: {formattedDate}
         </span>
       )}
@@ -223,14 +224,14 @@ function WarningsAlert({ warnings }: { warnings: string[] }) {
   return (
     <div
       role="alert"
-      className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3"
+      className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3"
     >
-      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-amber-800">
+      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-amber-400">
         Research notes
       </p>
       <ul className="space-y-1">
         {warnings.map((warning, index) => (
-          <li key={index} className="text-xs leading-relaxed text-amber-700">
+          <li key={index} className="text-xs leading-relaxed text-amber-300">
             {warning}
           </li>
         ))}

@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, cast
+from typing import cast
 
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
@@ -11,54 +11,18 @@ from app.core.logging import write_run_log
 from app.observability.metrics import compute_run_metrics
 from app.schemas.research import ResearchRequest
 
-_LIST_DELTA_FIELDS = ("progress_events", "sources", "evidence", "errors", "verified_claims")
-
-
-def _list_delta(state: RivalScopeState, patch: dict[str, Any], field: str) -> list[Any]:
-    updated = patch.get(field)
-    if updated is None:
-        return []
-    base_len = len(state.get(field, []))
-    if len(updated) <= base_len:
-        return list(updated)
-    return list(updated[base_len:])
-
-
-def _as_graph_update(
-    state: RivalScopeState,
-    patch: dict[str, Any],
-) -> dict[str, Any]:
-    """Return partial state with list fields as deltas for LangGraph reducers."""
-    result = {
-        key: value
-        for key, value in patch.items()
-        if key not in _LIST_DELTA_FIELDS
-    }
-    for field in _LIST_DELTA_FIELDS:
-        delta = _list_delta(state, patch, field)
-        if delta:
-            result[field] = delta
-    return result
-
-
-def _wrap_node(node_fn):
-    def wrapped(state: RivalScopeState) -> dict[str, Any]:
-        return _as_graph_update(state, node_fn(state))
-
-    return wrapped
-
 
 def build_research_graph() -> CompiledStateGraph:
     builder = StateGraph(RivalScopeState)
 
-    builder.add_node("normalize_input", _wrap_node(nodes.normalize_input))
-    builder.add_node("create_research_plan", _wrap_node(nodes.create_research_plan))
-    builder.add_node("company_profile_track", _wrap_node(nodes.company_profile_track))
-    builder.add_node("product_track", _wrap_node(nodes.product_track))
-    builder.add_node("pricing_track", _wrap_node(nodes.pricing_track))
-    builder.add_node("news_track", _wrap_node(nodes.news_track))
-    builder.add_node("fact_checker_stub", _wrap_node(nodes.fact_checker_stub))
-    builder.add_node("report_generator", _wrap_node(nodes.report_generator))
+    builder.add_node("normalize_input", nodes.normalize_input)
+    builder.add_node("create_research_plan", nodes.create_research_plan)
+    builder.add_node("company_profile_track", nodes.company_profile_track)
+    builder.add_node("product_track", nodes.product_track)
+    builder.add_node("pricing_track", nodes.pricing_track)
+    builder.add_node("news_track", nodes.news_track)
+    builder.add_node("fact_checker_stub", nodes.fact_checker_stub)
+    builder.add_node("report_generator", nodes.report_generator)
 
     builder.add_edge(START, "normalize_input")
     builder.add_edge("normalize_input", "create_research_plan")
@@ -85,7 +49,7 @@ def _request_payload(request: ResearchRequest) -> dict:
     }
 
 
-def run_research_graph(request: ResearchRequest) -> RivalScopeState:
+async def run_research_graph(request: ResearchRequest) -> RivalScopeState:
     graph = build_research_graph()
     initial_state: RivalScopeState = {
         "run_id": str(uuid.uuid4()),
@@ -108,7 +72,7 @@ def run_research_graph(request: ResearchRequest) -> RivalScopeState:
     )
 
     try:
-        final_state = graph.invoke(initial_state)
+        final_state = await graph.ainvoke(initial_state)
         state = cast(RivalScopeState, final_state)
         final_report = state.get("final_report")
         write_run_log(
@@ -142,9 +106,9 @@ def run_research_graph(request: ResearchRequest) -> RivalScopeState:
         raise
 
 
-def run_workflow(research_input: ResearchRequest) -> RivalScopeState:
+async def run_workflow(research_input: ResearchRequest) -> RivalScopeState:
     """Backward-compatible entry point used by the API and tests."""
-    state = run_research_graph(research_input)
+    state = await run_research_graph(research_input)
     if state.get("final_report") is None:
         raise RuntimeError("Research workflow did not produce a report")
     return state

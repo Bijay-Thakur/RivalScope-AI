@@ -289,6 +289,85 @@ scripts/
 
 ---
 
+## Grounding Eval — Reference-Free Faithfulness
+
+Answers item 5 above: is each report claim actually supported by the source it cites?
+This is separate from the Phase 4 benchmark scorer (which checks task completion, not
+factual grounding).
+
+**Method:** offline, in-process. `evals/harness.py` calls `run_research_graph()` directly
+(not HTTP) so it can read `report.evidence[]` and join each claim's `source_id` against
+`report.sources[]`. There is no gold "correct answer" set — the web changes constantly —
+so this measures faithfulness to *retrieved* sources, the same idea as RAGAS faithfulness,
+applied to open web research instead of a fixed corpus.
+
+Per claim, an LLM judge (`evals/judge.py`) reads the claim + its cited source text and
+returns one of:
+
+| Verdict | Meaning |
+| --- | --- |
+| `supported` | fully entailed by the source text |
+| `partial` | source text partly supports it |
+| `unsupported` | source text is silent on the claim |
+| `contradicted` | source text states the opposite (strongest hallucination signal) |
+| `citation_invalid` | `source_id` doesn't match any source in the report — decided deterministically, no LLM call |
+
+**Headline metric:** `grounding_rate_strict` = `supported / total_claims`.
+
+**Judge model bias:** the judge uses `JUDGE_MODEL` (default `gemini-2.5-pro`), a different
+and stronger tier than the synthesis model (`GEMINI_MODEL`, default `gemini-2.5-flash`).
+This reduces — but does not eliminate — self-evaluation bias (a model judging its own
+family's output). Treat absolute numbers as directional, not ground truth; the calibration
+breakdown (grounding rate bucketed by the evidence's self-reported confidence) is one way
+to sanity-check whether the pipeline's own confidence tiers track actual grounding.
+
+### Run it
+
+```bash
+# needs TAVILY_API_KEY + (GOOGLE_API_KEY or GEMINI_API_KEY) — judge always uses Gemini
+python -m evals.harness --limit 3
+python -m evals.harness --dataset evals/datasets/company_pairs.json --out evals/results
+```
+
+Writes `evals/results/eval_<timestamp>.json` and overwrites `evals/results/latest_summary.json`
+(gitignored). Prints a Markdown summary: headline grounding rate, hallucination rate,
+per-report-type breakdown, calibration.
+
+### Layout
+
+```text
+evals/
+  schemas.py    # Verdict enum, ClaimVerdict, ReportEvalResult, EvalSummary
+  judge.py      # async LLM-as-judge (Gemini, structured output)
+  metrics.py    # pure aggregation — no LLM/IO, fully unit-tested without API keys
+  harness.py    # orchestrates graph -> judge -> metrics -> write + print
+  datasets/company_pairs.json   # 10 real, well-known competitor pairs
+  results/                      # gitignored eval outputs
+```
+
+---
+
+## Observability — LangSmith Tracing
+
+Optional. Set these in `.env` to trace both the app and eval harness runs:
+
+```bash
+LANGSMITH_TRACING=true
+LANGSMITH_API_KEY=...
+LANGSMITH_PROJECT=rivalscope-ai
+```
+
+With tracing on: LangGraph's `.ainvoke()` and every LangChain chat model call
+(Groq/Gemini synthesis, fact-checker, judge) auto-trace to LangSmith — no graph code
+changes needed, it's purely env-var driven. Custom non-LangChain functions are wrapped
+with `@traceable` explicitly: `search_web`, `extract_urls` (`app/services/search.py`),
+`judge_claim` (`evals/judge.py`), and the harness run itself (`evals/harness.py`).
+
+With tracing off (default) or `langsmith` not installed, `app/observability/tracing.py`
+falls back to a no-op `@traceable` — nothing crashes, nothing is sent anywhere.
+
+---
+
 ## Development Cost Control
 
 - Keep `max_results_per_query` small (default is 3) — each query consumes Tavily credits and increases LLM context size.

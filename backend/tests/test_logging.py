@@ -50,12 +50,12 @@ def test_log_run_event_writes_jsonl_and_skips_without_run_id(tmp_path, monkeypat
     assert record["payload"]["result_count"] == 3
 
 
-def test_run_research_graph_writes_lifecycle_logs(tmp_path, monkeypatch):
+async def test_run_research_graph_writes_lifecycle_logs(tmp_path, monkeypatch):
     log_file = tmp_path / "research_runs.jsonl"
     monkeypatch.setattr("app.core.logging.LOG_DIR", tmp_path)
     monkeypatch.setattr("app.core.logging.RUN_LOG_FILE", log_file)
 
-    run_research_graph(
+    await run_research_graph(
         ResearchRequest(
             our_company="ClickUp",
             competitor="Notion",

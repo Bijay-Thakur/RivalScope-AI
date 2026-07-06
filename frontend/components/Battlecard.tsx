@@ -44,10 +44,10 @@ export function Battlecard({ salesBattlecard }: BattlecardProps) {
     <section className={`${PANEL_CLASS} ${PANEL_PADDING}`}>
       <div className="mb-6 sm:mb-7">
         <ProductLabel tone="gold">Sales Battlecard</ProductLabel>
-        <h2 className="mt-2 text-lg font-semibold tracking-tight text-stone-900 sm:text-xl">
+        <h2 className="mt-2 text-lg font-semibold tracking-tight text-neutral-100 sm:text-xl">
           Rep Playbook
         </h2>
-        <p className="mt-1.5 text-sm leading-relaxed text-stone-600">
+        <p className="mt-1.5 text-sm leading-relaxed text-neutral-400">
           Quick-reference cards for reps heading into a competitive evaluation.
         </p>
       </div>
@@ -63,14 +63,14 @@ export function Battlecard({ salesBattlecard }: BattlecardProps) {
             return (
               <div key={section.key}>
                 <div className="mb-4 flex items-start gap-3">
-                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-stone-200 bg-stone-50 text-stone-600">
+                  <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-neutral-800 bg-neutral-800/60 text-neutral-300">
                     {section.icon}
                   </span>
                   <div>
-                    <h3 className="text-sm font-semibold text-stone-800">
+                    <h3 className="text-sm font-semibold text-neutral-200">
                       {section.title}
                     </h3>
-                    <p className="mt-0.5 text-xs leading-relaxed text-stone-500">
+                    <p className="mt-0.5 text-xs leading-relaxed text-neutral-500">
                       {section.description}
                     </p>
                   </div>
@@ -80,13 +80,13 @@ export function Battlecard({ salesBattlecard }: BattlecardProps) {
                   {items.map((item, index) => (
                     <li
                       key={`${section.key}-${index}`}
-                      className="flex gap-3 rounded-lg border border-stone-200 bg-stone-50/50 px-4 py-3.5 sm:px-5 sm:py-4"
+                      className="flex gap-3 rounded-lg border border-neutral-800 bg-neutral-800/40 px-4 py-3.5 sm:px-5 sm:py-4"
                     >
                       <span
-                        className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-stone-400"
+                        className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-neutral-500"
                         aria-hidden="true"
                       />
-                      <p className="text-[0.9375rem] leading-[1.65] text-stone-700">
+                      <p className="text-[0.9375rem] leading-[1.65] text-neutral-300">
                         {item}
                       </p>
                     </li>
@@ -104,8 +104,8 @@ export function Battlecard({ salesBattlecard }: BattlecardProps) {
 function EmptyState() {
   return (
     <div className={EMPTY_STATE_CLASS}>
-      <p className="text-sm font-medium text-stone-700">No battlecard content yet</p>
-      <p className="mt-2 max-w-xs text-xs leading-relaxed text-stone-500">
+      <p className="text-sm font-medium text-neutral-300">No battlecard content yet</p>
+      <p className="mt-2 max-w-xs text-xs leading-relaxed text-neutral-500">
         Talk tracks, objection responses, and watchouts populate after the agent
         workflow completes.
       </p>

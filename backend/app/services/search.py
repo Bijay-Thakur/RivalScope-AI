@@ -4,6 +4,7 @@ from langchain_tavily import TavilyExtract, TavilySearch
 
 from app.core.config import settings
 from app.core.logging import log_run_event
+from app.observability.tracing import traceable
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ def _normalize_search_item(item: dict) -> dict:
     }
 
 
+@traceable(run_type="tool", name="search_web")
 def search_web(
     query: str,
     max_results: int = 5,
@@ -84,6 +86,7 @@ def search_web(
     return normalized
 
 
+@traceable(run_type="tool", name="extract_urls")
 def extract_urls(urls: list[str]) -> list[dict]:
     if not urls:
         return []

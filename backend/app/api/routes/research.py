@@ -29,7 +29,7 @@ _STREAM_DELAY_SECONDS = 0.25
 
 
 @router.post("", response_model=ResearchResponse)
-def create_research(payload: ResearchRequest) -> ResearchResponse:
+async def create_research(payload: ResearchRequest) -> ResearchResponse:
     _check_real_mode_keys()
     logger.info(
         "Research request: %s vs %s (%s)",
@@ -38,7 +38,7 @@ def create_research(payload: ResearchRequest) -> ResearchResponse:
         payload.market,
     )
     try:
-        final_state = run_research_graph(payload)
+        final_state = await run_research_graph(payload)
     except Exception as exc:
         logger.exception("Research workflow failed")
         raise HTTPException(status_code=500, detail="Research workflow failed") from exc
@@ -59,7 +59,7 @@ async def _research_stream_events(
         yield f"event: error\ndata: {json.dumps({'detail': exc.detail})}\n\n"
         return
     try:
-        final_state = run_research_graph(request)
+        final_state = await run_research_graph(request)
     except Exception:
         logger.exception("Research stream workflow failed")
         yield (

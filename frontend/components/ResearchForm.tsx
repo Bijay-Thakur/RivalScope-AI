@@ -39,12 +39,12 @@ export function ResearchForm({ onSubmit, isRunning = false }: ResearchFormProps)
     <section className={`${PANEL_CLASS} ${PANEL_PADDING}`}>
       <div className="mb-6 sm:mb-7">
         <ProductLabel tone="gold">Research Configuration</ProductLabel>
-        <h2 className="mt-2 text-lg font-semibold tracking-tight text-stone-900 sm:text-xl">
+        <h2 className="mt-2 text-lg font-semibold tracking-tight text-neutral-100 sm:text-xl">
           New Research
         </h2>
-        <p className="mt-1.5 text-sm leading-relaxed text-stone-600">
-          Define the competitive set and report type. Progress streams from the
-          local backend via Server-Sent Events.
+        <p className="mt-1.5 text-sm leading-relaxed text-neutral-400">
+          Define the competitive set and report type, then launch the agent
+          pipeline. You&apos;ll see live progress before the brief is ready.
         </p>
       </div>
 
@@ -86,14 +86,14 @@ export function ResearchForm({ onSubmit, isRunning = false }: ResearchFormProps)
           disabled={isRunning}
         />
 
-        <div className="flex flex-col gap-4 border-t border-stone-200 pt-5 sm:flex-row sm:items-center sm:justify-between sm:pt-6">
-          <p className="text-xs leading-relaxed text-stone-500">
+        <div className="flex flex-col gap-4 border-t border-neutral-800 pt-5 sm:flex-row sm:items-center sm:justify-between sm:pt-6">
+          <p className="text-xs leading-relaxed text-neutral-500">
             All fields required. Demo uses mock data streamed from the backend.
           </p>
           <button
             type="submit"
             disabled={isRunning}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-stone-800 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-400 focus:ring-offset-2 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 sm:w-auto"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-amber-500 px-6 py-3 text-sm font-semibold text-neutral-950 transition-colors hover:bg-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:ring-offset-2 focus:ring-offset-neutral-900 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 sm:w-auto"
           >
             {isRunning ? (
               <>
@@ -103,7 +103,7 @@ export function ResearchForm({ onSubmit, isRunning = false }: ResearchFormProps)
             ) : (
               <>
                 <SparkIcon />
-                Generate Brief
+                Generate Competitive Analysis
               </>
             )}
           </button>
@@ -116,7 +116,7 @@ export function ResearchForm({ onSubmit, isRunning = false }: ResearchFormProps)
 function LoadingSpinner() {
   return (
     <span
-      className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"
+      className="h-4 w-4 animate-spin rounded-full border-2 border-neutral-950/30 border-t-neutral-950"
       aria-hidden="true"
     />
   );

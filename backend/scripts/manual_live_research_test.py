@@ -10,6 +10,7 @@ This file is intentionally excluded from pytest collection.
 
 from __future__ import annotations
 
+import asyncio
 import io
 import json
 import sys
@@ -81,11 +82,16 @@ def _print_section(title: str, value: object) -> None:
         print(f"  {value}")
 
 
+async def _run(request):
+    from app.graph.workflow import run_research_graph
+
+    return await run_research_graph(request)
+
+
 def main() -> None:
     _check_prerequisites()
 
     from app.core.logging import setup_logging
-    from app.graph.workflow import run_research_graph
     from app.schemas.research import ReportType, ResearchRequest
 
     setup_logging()
@@ -101,7 +107,7 @@ def main() -> None:
     print("      Calling run_research_graph — this may take 30–60 seconds...\n")
 
     try:
-        state = run_research_graph(request)
+        state = asyncio.run(_run(request))
     except Exception as exc:
         print(f"\n[FATAL] Research graph failed: {exc}")
         sys.exit(1)
@@ -121,7 +127,7 @@ def main() -> None:
     print(f"  sources         : {len(state['sources'])}")
     print(f"  evidence items  : {len(state['evidence'])}")
     print(f"  verified claims : {len(state['verified_claims'])}")
-    print(f"  confidence score: {report.confidence_score:.2f}")
+    print(f"  confidence score: {report.confidence_score:.0f}/100")
     print(f"  research_mode   : {report.research_mode or 'n/a'}")
     print(f"  generated_at    : {report.generated_at or 'n/a'}")
 

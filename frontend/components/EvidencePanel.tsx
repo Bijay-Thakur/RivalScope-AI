@@ -17,15 +17,15 @@ const CONFIDENCE_STYLES: Record<
   { badge: string; label: string }
 > = {
   high: {
-    badge: "border-amber-200 bg-amber-50 text-amber-900",
+    badge: "border-amber-500/30 bg-amber-500/10 text-amber-400",
     label: "High",
   },
   medium: {
-    badge: "border-stone-300 bg-stone-50 text-stone-700",
+    badge: "border-neutral-700 bg-neutral-800/60 text-neutral-300",
     label: "Medium",
   },
   low: {
-    badge: "border-stone-200 bg-white text-stone-500",
+    badge: "border-neutral-800 bg-neutral-900 text-neutral-500",
     label: "Low",
   },
 };
@@ -46,10 +46,10 @@ export function EvidencePanel({ evidence, sources }: EvidencePanelProps) {
     <section className={`${PANEL_CLASS} ${PANEL_PADDING}`}>
       <div className="mb-6 sm:mb-7">
         <ProductLabel tone="bronze">Verified Evidence</ProductLabel>
-        <h2 className="mt-2 text-lg font-semibold tracking-tight text-stone-900 sm:text-xl">
+        <h2 className="mt-2 text-lg font-semibold tracking-tight text-neutral-100 sm:text-xl">
           Source Citations
         </h2>
-        <p className="mt-1.5 text-sm leading-relaxed text-stone-600">
+        <p className="mt-1.5 text-sm leading-relaxed text-neutral-400">
           Claims in this brief mapped to public sources with confidence ratings.
         </p>
       </div>
@@ -64,38 +64,38 @@ export function EvidencePanel({ evidence, sources }: EvidencePanelProps) {
             return (
               <li
                 key={item.id}
-                className="rounded-lg border border-stone-200 bg-stone-50/50 p-4 sm:p-5"
+                className="rounded-lg border border-neutral-800 bg-neutral-800/40 p-4 sm:p-5"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="flex min-w-0 flex-1 gap-3">
-                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-stone-200 bg-white text-xs font-medium tabular-nums text-stone-500">
+                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-neutral-700 bg-neutral-900 text-xs font-medium tabular-nums text-neutral-400">
                       {index + 1}
                     </span>
-                    <p className="text-[0.9375rem] leading-[1.65] text-stone-800">
+                    <p className="text-[0.9375rem] leading-[1.65] text-neutral-200">
                       {item.claim}
                     </p>
                   </div>
                   <ConfidenceBadge confidence={item.confidence} />
                 </div>
 
-                <div className="mt-4 border-t border-stone-200 pt-4 pl-9">
+                <div className="mt-4 border-t border-neutral-800 pt-4 pl-9">
                   {source ? (
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-medium text-stone-500">
+                        <span className="text-xs font-medium text-neutral-500">
                           Source
                         </span>
                         <SourceTypeBadge sourceType={source.sourceType} />
                       </div>
-                      <p className="text-sm font-medium text-stone-800">
+                      <p className="text-sm font-medium text-neutral-200">
                         {source.title}
                       </p>
-                      <p className="break-all font-mono text-xs leading-relaxed text-stone-500">
+                      <p className="break-all font-mono text-xs leading-relaxed text-neutral-500">
                         {source.url}
                       </p>
                     </div>
                   ) : (
-                    <p className="text-xs text-stone-500">
+                    <p className="text-xs text-neutral-500">
                       Source not found ({item.sourceId})
                     </p>
                   )}
@@ -123,7 +123,7 @@ function ConfidenceBadge({ confidence }: { confidence: EvidenceConfidence }) {
 
 function SourceTypeBadge({ sourceType }: { sourceType: SourceType }) {
   return (
-    <span className="inline-flex items-center rounded-md border border-stone-200 bg-white px-2 py-0.5 text-xs font-medium text-stone-600">
+    <span className="inline-flex items-center rounded-md border border-neutral-700 bg-neutral-900 px-2 py-0.5 text-xs font-medium text-neutral-400">
       {SOURCE_TYPE_LABELS[sourceType]}
     </span>
   );
@@ -132,8 +132,8 @@ function SourceTypeBadge({ sourceType }: { sourceType: SourceType }) {
 function EmptyState() {
   return (
     <div className={EMPTY_STATE_CLASS}>
-      <p className="text-sm font-medium text-stone-700">No evidence yet</p>
-      <p className="mt-2 max-w-xs text-xs leading-relaxed text-stone-500">
+      <p className="text-sm font-medium text-neutral-300">No evidence yet</p>
+      <p className="mt-2 max-w-xs text-xs leading-relaxed text-neutral-500">
         Verified claims and source citations appear here after the agent
         workflow completes.
       </p>

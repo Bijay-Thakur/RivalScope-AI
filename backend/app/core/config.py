@@ -1,3 +1,5 @@
+import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,6 +24,14 @@ class Settings(BaseSettings):
     gemini_model: str = "gemini-2.5-flash"
 
     research_mode: str = "mock"
+
+    # Phase 2 — grounding eval + tracing
+    judge_model: str = "gemini-2.5-pro"  # stronger tier than gemini_model (flash) to reduce self-eval bias
+    eval_max_concurrency: int = 3
+
+    langsmith_tracing: bool = False
+    langsmith_api_key: str | None = None
+    langsmith_project: str = "rivalscope-ai"
 
     @property
     def cors_origin_list(self) -> list[str]:
@@ -53,3 +63,9 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+if settings.langsmith_tracing:
+    os.environ.setdefault("LANGSMITH_TRACING", "true")
+    os.environ.setdefault("LANGSMITH_PROJECT", settings.langsmith_project)
+    if settings.langsmith_api_key:
+        os.environ.setdefault("LANGSMITH_API_KEY", settings.langsmith_api_key)

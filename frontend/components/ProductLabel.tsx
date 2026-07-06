@@ -4,10 +4,10 @@ interface ProductLabelProps {
 }
 
 const TONE_CLASS = {
-  default: "text-stone-500",
-  gold: "text-amber-800",
-  bronze: "text-stone-600",
-  muted: "text-stone-400",
+  default: "text-neutral-500",
+  gold: "text-amber-400",
+  bronze: "text-neutral-400",
+  muted: "text-neutral-600",
 };
 
 export function ProductLabel({ children, tone = "default" }: ProductLabelProps) {

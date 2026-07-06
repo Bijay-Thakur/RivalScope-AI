@@ -25,6 +25,9 @@ def get_primary_llm(temperature: float = 0.1):
             model=settings.groq_model,
             temperature=temperature,
             api_key=settings.groq_api_key,
+            # every prompt in this app demands JSON-only output — force it so small
+            # instruct models (e.g. llama-3.1-8b) don't wrap/truncate it into prose.
+            model_kwargs={"response_format": {"type": "json_object"}},
         )
 
     if provider == "gemini":
@@ -59,6 +62,9 @@ def get_fallback_llm(temperature: float = 0.1):
             model=settings.groq_model,
             temperature=temperature,
             api_key=settings.groq_api_key,
+            # every prompt in this app demands JSON-only output — force it so small
+            # instruct models (e.g. llama-3.1-8b) don't wrap/truncate it into prose.
+            model_kwargs={"response_format": {"type": "json_object"}},
         )
 
     return None
