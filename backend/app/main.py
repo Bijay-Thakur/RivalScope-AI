@@ -1,11 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import research
+from app.api.routes import config, evaluations, research, runs
 from app.core.config import settings
 from app.core.logging import get_logger, setup_logging
+from app.db.database import init_db
 
 setup_logging()
+init_db()
 logger = get_logger(__name__)
 
 app = FastAPI(
@@ -22,6 +24,9 @@ app.add_middleware(
 )
 
 app.include_router(research.router)
+app.include_router(runs.router)
+app.include_router(evaluations.router)
+app.include_router(config.router)
 
 
 @app.get("/health")

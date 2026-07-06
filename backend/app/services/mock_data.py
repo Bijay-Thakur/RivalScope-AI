@@ -1,8 +1,10 @@
 """Demo mock data — illustrative only, not live intelligence."""
 
 from app.schemas.report import (
+    ComparisonMatrix,
     CompetitorReport,
     EvidenceItem,
+    FeatureComparisonRow,
     SalesBattlecard,
     Source,
 )
@@ -23,6 +25,71 @@ CONFIDENCE_BY_REPORT_TYPE: dict[ReportType, float] = {
 
 def _slug(name: str) -> str:
     return name.lower().replace(" ", "-").replace("/", "-")
+
+
+def build_mock_comparison_matrix(request: ResearchRequest) -> ComparisonMatrix:
+    """Offline demo head-to-head — illustrative only, not live intelligence."""
+    our = request.our_company.strip()
+    rival = request.competitor.strip()
+    market = request.market.strip()
+
+    rows = [
+        FeatureComparisonRow(
+            dimension="Pricing model",
+            our_value=f"Demo: {our} bundled mid-tier per-seat plans (mock).",
+            competitor_value=f"Demo: {rival} freemium/starter + per-seat tiers (mock).",
+            our_source_ids=["src-4"],
+            competitor_source_ids=["src-2"],
+            advantage="unclear",
+        ),
+        FeatureComparisonRow(
+            dimension="Core workflow depth",
+            our_value=f"Demo: {our} emphasizes structured delivery in {market} (mock).",
+            competitor_value=f"Demo: {rival} leans configurable hubs, lighter PM (mock).",
+            our_source_ids=["src-4"],
+            competitor_source_ids=["src-1"],
+            advantage="our",
+        ),
+        FeatureComparisonRow(
+            dimension="Docs & collaboration",
+            our_value=f"Demo: {our} ties specs to execution (mock).",
+            competitor_value=f"Demo: {rival} edge on async writing-first workflows (mock).",
+            our_source_ids=["src-4"],
+            competitor_source_ids=["src-1"],
+            advantage="competitor",
+        ),
+        FeatureComparisonRow(
+            dimension="AI capabilities",
+            our_value=f"Demo: {our} AI ties insights to tasks/priorities (mock).",
+            competitor_value=f"Demo: {rival} AI-assisted authoring (mock).",
+            our_source_ids=["src-4"],
+            competitor_source_ids=["src-3"],
+            advantage="parity",
+        ),
+        FeatureComparisonRow(
+            dimension="Reporting & visibility",
+            our_value=f"Demo: {our} stronger operational dashboards (mock).",
+            competitor_value=f"Demo: {rival} flexible views, may need customization (mock).",
+            our_source_ids=["src-4"],
+            competitor_source_ids=["src-5"],
+            advantage="our",
+        ),
+    ]
+    return ComparisonMatrix(
+        rows=rows,
+        pricing_comparison=(
+            f"Demo (not live): {rival} freemium entry vs {our} bundled mid-tier — "
+            f"seat growth and add-ons can shift TCO 10–20% in {market}."
+        ),
+        positioning_gap=(
+            f"Demo: {rival} skews content/workspace-first; {our} skews execution and "
+            f"delivery ownership in {market}. Illustrative — verify before use."
+        ),
+        summary=(
+            f"Demo head-to-head for {our} vs {rival} in {market}: mixed advantages, "
+            "mock data for UI/testing only."
+        ),
+    )
 
 
 def build_mock_report(request: ResearchRequest) -> CompetitorReport:

@@ -1,8 +1,10 @@
 import logging
 from datetime import datetime, timezone
 
+from app.core.config import settings
 from app.core.logging import log_run_event
 from app.schemas.report import (
+    ComparisonMatrix,
     CompetitorReport,
     EvidenceItem,
     SalesBattlecard,
@@ -10,6 +12,7 @@ from app.schemas.report import (
     VerifiedClaim,
 )
 from app.schemas.research import ResearchRequest
+from app.services.context_budget import trim_evidence_to_budget
 from app.services.json_utils import extract_json_from_text, safe_get_message_text
 from app.services.llm import invoke_with_fallback
 from app.services.mock_data import build_mock_report
@@ -33,32 +36,103 @@ def _safe_list(value, fallback: list) -> list:
     return value if isinstance(value, list) else fallback
 
 
-def _build_context(
-    request: ResearchRequest,
+def _partition_by_company(
+    items: list, our: str, rival: str
+) -> tuple[list, list, list]:
+    """Split sources/evidence by tagged company. Untagged items -> 'other' (never dropped)."""
+    ours, theirs, other = [], [], []
+    for item in items:
+        if item.company == our:
+            ours.append(item)
+        elif item.company == rival:
+            theirs.append(item)
+        else:
+            other.append(item)
+    return ours, theirs, other
+
+
+def _append_side_section(
+    lines: list[str],
+    label: str,
     sources: list[Source],
     evidence: list[EvidenceItem],
-    verified_claims: list[VerifiedClaim],
-) -> str:
-    lines: list[str] = [
-        f"our_company: {request.our_company}",
-        f"competitor: {request.competitor}",
-        f"market: {request.market}",
-        f"report_type: {request.report_type}",
-        "",
-        "=== SOURCES ===",
-    ]
+) -> None:
+    lines.append(f"=== {label} ===")
+    lines.append("--- Sources ---")
     for src in sources[:_MAX_SOURCES]:
         lines.append(f"[{src.id}] {src.title} | {src.url} | credibility={src.credibility_score}")
         if src.snippet:
             lines.append(f"  snippet: {src.snippet[:200]}")
 
-    lines += ["", "=== EVIDENCE ==="]
+    lines.append("--- Evidence ---")
     for item in evidence[:_MAX_EVIDENCE]:
         lines.append(f"- [{item.source_id}] {item.claim}")
         if item.raw_text:
             lines.append(f"  raw: {item.raw_text[:200]}")
+    lines.append("")
 
-    lines += ["", "=== VERIFIED CLAIMS ==="]
+
+def _append_comparison_section(
+    lines: list[str], request: ResearchRequest, matrix: ComparisonMatrix
+) -> None:
+    our, rival = request.our_company, request.competitor
+    lines.append("=== HEAD-TO-HEAD COMPARISON ===")
+    lines.append(f"summary: {matrix.summary}")
+    lines.append(f"pricing: {matrix.pricing_comparison}")
+    lines.append(f"positioning_gap: {matrix.positioning_gap}")
+    for row in matrix.rows:
+        lines.append(
+            f"- {row.dimension} [advantage={row.advantage}]: "
+            f"{our} -> {row.our_value} (src {row.our_source_ids}) | "
+            f"{rival} -> {row.competitor_value} (src {row.competitor_source_ids})"
+        )
+    lines.append("")
+
+
+def _feature_comparison_from_matrix(
+    request: ResearchRequest, matrix: ComparisonMatrix
+) -> list[str]:
+    our, rival = request.our_company, request.competitor
+    return [
+        f"{row.dimension}: {our} -> {row.our_value} | {rival} -> {row.competitor_value}"
+        for row in matrix.rows
+    ]
+
+
+def _build_context(
+    request: ResearchRequest,
+    sources: list[Source],
+    evidence: list[EvidenceItem],
+    verified_claims: list[VerifiedClaim],
+    comparison_matrix: ComparisonMatrix | None = None,
+    *,
+    run_id: str | None = None,
+) -> str:
+    our, rival = request.our_company, request.competitor
+
+    evidence = trim_evidence_to_budget(
+        evidence, sources, our, rival, settings.max_context_chars, run_id=run_id
+    )
+    our_sources, rival_sources, other_sources = _partition_by_company(sources, our, rival)
+    our_evidence, rival_evidence, other_evidence = _partition_by_company(evidence, our, rival)
+
+    lines: list[str] = [
+        f"our_company: {our}",
+        f"competitor: {rival}",
+        f"market: {request.market}",
+        f"report_type: {request.report_type}",
+        "",
+    ]
+
+    _append_side_section(lines, f"OUR COMPANY: {our}", our_sources, our_evidence)
+    _append_side_section(lines, f"COMPETITOR: {rival}", rival_sources, rival_evidence)
+    if other_sources or other_evidence:
+        _append_side_section(lines, "OTHER / UNTAGGED", other_sources, other_evidence)
+
+    if comparison_matrix is not None:
+        _append_comparison_section(lines, request, comparison_matrix)
+
+    lines += ["=== VERIFIED CLAIMS ==="]
     for claim in verified_claims[:_MAX_CLAIMS]:
         lines.append(
             f"- [{claim.verification_status} | score={claim.confidence_score}] {claim.claim}"
@@ -67,28 +141,41 @@ def _build_context(
     return "\n".join(lines)
 
 
-def _extract_strengths_from_evidence(evidence: list[EvidenceItem]) -> list[str]:
-    positive_kws = ("leader", "top", "best", "fast", "reliable", "trusted", "award", "growth")
+def _match_claims(evidence: list[EvidenceItem], kws: tuple[str, ...], limit: int) -> list[str]:
     out: list[str] = []
     for item in evidence[:_MAX_EVIDENCE]:
-        low = item.claim.lower()
-        if any(kw in low for kw in positive_kws):
+        if any(kw in item.claim.lower() for kw in kws):
             out.append(item.claim)
-        if len(out) >= 3:
+        if len(out) >= limit:
             break
     return out
 
 
-def _extract_weaknesses_from_evidence(evidence: list[EvidenceItem]) -> list[str]:
-    negative_kws = ("limited", "lack", "issue", "complaint", "expensive", "slow", "difficult", "missing")
-    out: list[str] = []
-    for item in evidence[:_MAX_EVIDENCE]:
-        low = item.claim.lower()
-        if any(kw in low for kw in negative_kws):
-            out.append(item.claim)
-        if len(out) >= 3:
-            break
-    return out
+def _balanced_extract(
+    evidence: list[EvidenceItem],
+    our: str,
+    rival: str,
+    kws: tuple[str, ...],
+) -> list[str]:
+    """Pull matching claims from BOTH sides so one company can't dominate the fallback."""
+    our_ev, rival_ev, _ = _partition_by_company(evidence, our, rival)
+    return _match_claims(our_ev, kws, 3) + _match_claims(rival_ev, kws, 3)
+
+
+_POSITIVE_KWS = ("leader", "top", "best", "fast", "reliable", "trusted", "award", "growth")
+_NEGATIVE_KWS = ("limited", "lack", "issue", "complaint", "expensive", "slow", "difficult", "missing")
+
+
+def _extract_strengths_from_evidence(
+    evidence: list[EvidenceItem], our: str, rival: str
+) -> list[str]:
+    return _balanced_extract(evidence, our, rival, _POSITIVE_KWS)
+
+
+def _extract_weaknesses_from_evidence(
+    evidence: list[EvidenceItem], our: str, rival: str
+) -> list[str]:
+    return _balanced_extract(evidence, our, rival, _NEGATIVE_KWS)
 
 
 def _build_fallback_report(
@@ -97,10 +184,14 @@ def _build_fallback_report(
     evidence: list[EvidenceItem],
     warnings: list[str],
     generated_at: str,
+    comparison_matrix: ComparisonMatrix | None = None,
 ) -> CompetitorReport:
     rival = request.competitor
     our = request.our_company
-    top_claims = [e.claim for e in evidence[:5]] or ["No evidence available."]
+    if comparison_matrix is not None:
+        feature_comparison = _feature_comparison_from_matrix(request, comparison_matrix)
+    else:
+        feature_comparison = [e.claim for e in evidence[:5]] or ["No evidence available."]
 
     return CompetitorReport(
         company_snapshot=(
@@ -108,16 +199,17 @@ def _build_fallback_report(
             "synthesis failed. Review the raw evidence items below."
         ),
         product_positioning="Not found in available sources.",
-        feature_comparison=top_claims,
+        feature_comparison=feature_comparison,
         pricing_intelligence=_NOT_FOUND,
         recent_moves=[],
-        strengths=_extract_strengths_from_evidence(evidence),
-        weaknesses=_extract_weaknesses_from_evidence(evidence),
+        strengths=_extract_strengths_from_evidence(evidence, our, rival),
+        weaknesses=_extract_weaknesses_from_evidence(evidence, our, rival),
         sales_battlecard=SalesBattlecard(
             talk_tracks=[],
             objection_handling=[],
             landmines=[],
         ),
+        comparison_matrix=comparison_matrix,
         evidence=evidence,
         sources=sources,
         confidence_score=45.0,
@@ -149,6 +241,7 @@ def generate_competitor_report(
     sources: list[Source],
     evidence: list[EvidenceItem],
     verified_claims: list[VerifiedClaim],
+    comparison_matrix: ComparisonMatrix | None = None,
     warnings: list[str] | None = None,
     *,
     run_id: str | None = None,
@@ -176,6 +269,7 @@ def generate_competitor_report(
         mock.warnings = ["Real research returned no evidence."] + warnings
         mock.generated_at = generated_at
         mock.research_mode = "real"
+        mock.comparison_matrix = comparison_matrix
         mock.confidence_score = 15.0  # no evidence at all — should not inherit mock's demo score
         log_run_event(
             run_id,
@@ -190,7 +284,9 @@ def generate_competitor_report(
         )
         return mock
 
-    context = _build_context(request, sources, evidence, verified_claims)
+    context = _build_context(
+        request, sources, evidence, verified_claims, comparison_matrix, run_id=run_id
+    )
 
     try:
         response = invoke_with_fallback(
@@ -203,7 +299,9 @@ def generate_competitor_report(
                         "Return JSON only.\n\n" + context
                     ),
                 },
-            ]
+            ],
+            run_id=run_id,
+            call_name="report_generator_llm",
         )
         raw = safe_get_message_text(response)
         data = extract_json_from_text(raw)
@@ -214,7 +312,9 @@ def generate_competitor_report(
         )
         warnings.append("Report generation failed — showing collected evidence only.")
         _log_report_fallback(run_id, type(exc).__name__, "evidence_only")
-        report = _build_fallback_report(request, sources, evidence, warnings, generated_at)
+        report = _build_fallback_report(
+            request, sources, evidence, warnings, generated_at, comparison_matrix
+        )
         log_run_event(
             run_id,
             "report_generator_completed",
@@ -232,7 +332,9 @@ def generate_competitor_report(
         logger.warning("report_generator: unexpected JSON type — using fallback report.")
         warnings.append("Report generation returned unexpected JSON — showing collected evidence only.")
         _log_report_fallback(run_id, "invalid_json_shape", "evidence_only")
-        report = _build_fallback_report(request, sources, evidence, warnings, generated_at)
+        report = _build_fallback_report(
+            request, sources, evidence, warnings, generated_at, comparison_matrix
+        )
         log_run_event(
             run_id,
             "report_generator_completed",
@@ -280,8 +382,12 @@ def generate_competitor_report(
                 data.get("productPositioning") or data.get("product_positioning"),
                 "Not found in available sources.",
             ),
-            feature_comparison=_safe_list(
-                data.get("featureComparison") or data.get("feature_comparison"), []
+            feature_comparison=(
+                _feature_comparison_from_matrix(request, comparison_matrix)
+                if comparison_matrix is not None
+                else _safe_list(
+                    data.get("featureComparison") or data.get("feature_comparison"), []
+                )
             ),
             pricing_intelligence=_safe_str(pricing, _NOT_FOUND),
             recent_moves=_safe_list(
@@ -290,6 +396,7 @@ def generate_competitor_report(
             strengths=_safe_list(data.get("strengths"), []),
             weaknesses=_safe_list(data.get("weaknesses"), []),
             sales_battlecard=battlecard,
+            comparison_matrix=comparison_matrix,
             evidence=evidence,
             sources=sources,
             confidence_score=score,
@@ -304,7 +411,9 @@ def generate_competitor_report(
         )
         warnings.append("Report schema construction failed — showing collected evidence only.")
         _log_report_fallback(run_id, type(exc).__name__, "evidence_only")
-        report = _build_fallback_report(request, sources, evidence, warnings, generated_at)
+        report = _build_fallback_report(
+            request, sources, evidence, warnings, generated_at, comparison_matrix
+        )
         log_run_event(
             run_id,
             "report_generator_completed",

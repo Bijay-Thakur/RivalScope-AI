@@ -17,12 +17,21 @@ TASK_SCORE_CSV_FIELDS = (
     "section_coverage",
     "source_coverage",
     "citation_integrity",
+    "comparison_two_sidedness",
+    "comparison_citation_validity",
+    "grounding_rate",
+    "hallucination_rate",
+    "comparison_grounding",
     "evidence_count",
     "source_count",
     "latency_seconds",
     "warnings_count",
     "failure_notes",
 )
+
+
+def _fmt(value: float | None) -> str:
+    return f"{value:.4f}" if value is not None else ""
 
 
 def _resolve_output_dir(output_dir: str) -> Path:
@@ -60,6 +69,11 @@ def _write_csv(result: ExperimentResult, output_path: Path) -> Path:
                     "section_coverage": f"{task_score.section_coverage:.4f}",
                     "source_coverage": f"{task_score.source_coverage:.4f}",
                     "citation_integrity": f"{task_score.citation_integrity:.4f}",
+                    "comparison_two_sidedness": _fmt(task_score.comparison_two_sidedness),
+                    "comparison_citation_validity": _fmt(task_score.comparison_citation_validity),
+                    "grounding_rate": _fmt(task_score.grounding_rate),
+                    "hallucination_rate": _fmt(task_score.hallucination_rate),
+                    "comparison_grounding": _fmt(task_score.comparison_grounding),
                     "evidence_count": task_score.evidence_count,
                     "source_count": task_score.source_count,
                     "latency_seconds": f"{task_score.latency_seconds:.2f}",
@@ -85,6 +99,9 @@ def _write_markdown_summary(result: ExperimentResult, output_path: Path) -> Path
         output_path / f"{_safe_experiment_filename(result.experiment_name)}_summary.md"
     )
 
+    def _pct(value: float | None) -> str:
+        return f"{value:.1%}" if value is not None else "n/a (structural mode)"
+
     lines = [
         f"# Experiment Summary: {result.experiment_name}",
         "",
@@ -93,10 +110,21 @@ def _write_markdown_summary(result: ExperimentResult, output_path: Path) -> Path
         f"- **Experiment name:** {result.experiment_name}",
         f"- **Model provider:** {result.model_provider}",
         f"- **Research mode:** {result.research_mode}",
+        f"- **Eval mode:** {result.eval_mode}",
+        f"- **Judge model:** {result.judge_model or 'n/a (structural mode)'}",
         f"- **Total tasks:** {result.total_tasks}",
         f"- **Average score:** {result.average_score:.4f}",
         f"- **Average latency (s):** {result.average_latency_seconds:.2f}",
         f"- **Average source count:** {result.average_source_count:.2f}",
+        "",
+        "## Headline Metrics",
+        "",
+        f"- **Comparison two-sidedness:** {_pct(result.avg_comparison_two_sidedness)} "
+        "(share of matrix rows with BOTH sides filled — measures the one-sided bug)",
+        f"- **Comparison citation validity:** {_pct(result.avg_comparison_citation_validity)}",
+        f"- **Claim grounding rate:** {_pct(result.avg_grounding_rate)}",
+        f"- **Hallucination rate:** {_pct(result.avg_hallucination_rate)}",
+        f"- **Comparison grounding:** {_pct(result.avg_comparison_grounding)}",
         "",
         "## Task Scores",
         "",

@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
+from app.core.config import settings
 from app.core.logging import get_logger, log_run_event
 from app.schemas.report import EvidenceItem, Source
 
@@ -62,6 +63,7 @@ def source_from_search_result(
     result: dict,
     source_type: str | None = None,
     track: str = "general",
+    company: str | None = None,
 ) -> Source:
     url = result.get("url") or ""
     title = result.get("title") or url or "Untitled source"
@@ -77,6 +79,7 @@ def source_from_search_result(
         credibility_score=estimate_credibility(url, resolved_type),
         snippet=content[:300] if content else None,
         retrieved_at=datetime.now(timezone.utc).isoformat(),
+        company=company,
     )
 
 
@@ -84,6 +87,7 @@ def evidence_from_search_result(
     result: dict,
     source: Source,
     track: str,
+    company: str | None = None,
 ) -> EvidenceItem:
     content = result.get("content") or result.get("snippet") or ""
 
@@ -94,7 +98,8 @@ def evidence_from_search_result(
         confidence=infer_confidence(source.source_type),
         evidence_type=track,
         url=source.url,
-        raw_text=content[:500] if content else None,
+        raw_text=content[: settings.extract_max_chars] if content else None,
+        company=company,
     )
 
 
@@ -103,6 +108,7 @@ def build_evidence_from_results(
     track: str,
     source_type: str | None = None,
     *,
+    company: str | None = None,
     run_id: str | None = None,
 ) -> tuple[list[Source], list[EvidenceItem]]:
     sources: list[Source] = []
@@ -112,8 +118,8 @@ def build_evidence_from_results(
         if not (result.get("url") or "").strip():
             continue
 
-        source = source_from_search_result(result, source_type, track)
-        item = evidence_from_search_result(result, source, track)
+        source = source_from_search_result(result, source_type, track, company)
+        item = evidence_from_search_result(result, source, track, company)
         sources.append(source)
         evidence_items.append(item)
 
@@ -122,6 +128,7 @@ def build_evidence_from_results(
         "evidence_built",
         {
             "track": track,
+            "company": company,
             "input_result_count": len(results),
             "source_count": len(sources),
             "evidence_count": len(evidence_items),

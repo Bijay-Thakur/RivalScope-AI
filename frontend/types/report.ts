@@ -22,6 +22,7 @@ export interface Source {
   sourceType: SourceType;
   publishedDate?: string;
   credibilityScore: number;
+  snippet?: string;
 }
 
 export type EvidenceConfidence = "low" | "medium" | "high";
@@ -31,12 +32,32 @@ export interface EvidenceItem {
   claim: string;
   sourceId: string;
   confidence: EvidenceConfidence;
+  url?: string;
+  rawText?: string;
 }
 
 export interface SalesBattlecard {
   talkTracks: string[];
   objectionHandling: string[];
   landmines: string[];
+}
+
+export type ComparisonAdvantage = "our" | "competitor" | "parity" | "unclear";
+
+export interface FeatureComparisonRow {
+  dimension: string;
+  ourValue: string;
+  competitorValue: string;
+  ourSourceIds: string[];
+  competitorSourceIds: string[];
+  advantage: ComparisonAdvantage;
+}
+
+export interface ComparisonMatrix {
+  rows: FeatureComparisonRow[];
+  pricingComparison: string;
+  positioningGap: string;
+  summary: string;
 }
 
 export interface CompetitorReport {
@@ -48,6 +69,7 @@ export interface CompetitorReport {
   strengths: string[];
   weaknesses: string[];
   salesBattlecard: SalesBattlecard;
+  comparisonMatrix?: ComparisonMatrix;
   evidence: EvidenceItem[];
   sources: Source[];
   confidenceScore: number;

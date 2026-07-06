@@ -1,7 +1,7 @@
-import pytest
+"""Ported from evals/test_judge.py -> unified evaluation. Judge fully mocked."""
 
-from evals import judge
-from evals.schemas import Verdict
+from app.evaluation import judge
+from app.evaluation.schemas import Verdict
 
 
 class _FakeVerdict:

@@ -5,11 +5,13 @@ from app.core.config import settings
 from app.core.logging import get_logger
 from app.graph.constants import TOTAL_STEPS
 from app.graph.state import RivalScopeState
+from app.observability import trace_buffer
 from app.schemas.events import ProgressEvent
 from app.schemas.report import EvidenceItem, Source, VerifiedClaim
 from app.schemas.research import ResearchTask
+from app.services.comparison_agent import build_comparison_matrix
 from app.services.fact_checker import verify_evidence_claims
-from app.services.mock_data import build_mock_report
+from app.services.mock_data import build_mock_comparison_matrix, build_mock_report
 from app.services.query_builder import build_all_queries
 from app.services.report_generator import generate_competitor_report
 from app.services.research_tracks import run_research_track
@@ -21,6 +23,19 @@ PartialState = dict[str, Any]
 
 def is_real_mode() -> bool:
     return settings.is_real_research_enabled
+
+
+def _mock_trace(state: RivalScopeState, track: str, *, kind: str, name: str, summary: str) -> None:
+    """Record a synthetic tool trace so the Streaming Log is populated in demo mode."""
+    trace_buffer.record(
+        state["run_id"],
+        kind=kind,
+        name=name,
+        track=track,
+        summary=summary,
+        duration_ms=0.0,
+        detail={"mock": True},
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -159,12 +174,12 @@ async def _run_track(
     rival: str,
     source_type: str | None = None,
 ) -> PartialState:
-    queries = build_all_queries(state["request"])[track]
+    queries_by_company = build_all_queries(state["request"])[track]
     try:
         result = await asyncio.to_thread(
             run_research_track,
             track=track,
-            queries=queries,
+            queries_by_company=queries_by_company,
             source_type=source_type,
             run_id=state["run_id"],
         )
@@ -176,10 +191,11 @@ async def _run_track(
         logger.error(msg)
         new_sources, new_evidence, new_warnings = [], [], [msg]
 
+    our = state["request"].our_company
     step, events = _with_progress(
         state,
         step_name,
-        f"Searched {track.replace('_', ' ')} for {rival} — {len(new_sources)} source(s) found.",
+        f"Searched {track.replace('_', ' ')} for {our} & {rival} — {len(new_sources)} source(s) found.",
     )
     return {
         "current_step": step,
@@ -200,6 +216,10 @@ async def company_profile_track(state: RivalScopeState) -> PartialState:
     if is_real_mode():
         return await _run_track(state, "company_profile", "company_profile_track", rival)
 
+    _mock_trace(
+        state, "company_profile", kind=trace_buffer.KIND_TOOL, name="tavily_search",
+        summary=f"[company_profile] mock search for {rival} \u2192 1 source",
+    )
     source = _mock_source(
         "src-company-profile",
         f"{rival} — Company profile (demo snapshot)",
@@ -231,6 +251,10 @@ async def product_track(state: RivalScopeState) -> PartialState:
     if is_real_mode():
         return await _run_track(state, "product_features", "product_track", rival)
 
+    _mock_trace(
+        state, "product_features", kind=trace_buffer.KIND_TOOL, name="tavily_search",
+        summary=f"[product_features] mock search for {rival} \u2192 1 source",
+    )
     source = _mock_source(
         "src-product",
         f"{rival} — Product & features overview (demo snapshot)",
@@ -262,6 +286,10 @@ async def pricing_track(state: RivalScopeState) -> PartialState:
     if is_real_mode():
         return await _run_track(state, "pricing", "pricing_track", rival, source_type="pricing_page")
 
+    _mock_trace(
+        state, "pricing", kind=trace_buffer.KIND_TOOL, name="tavily_search",
+        summary=f"[pricing] mock search for {rival} \u2192 1 pricing source",
+    )
     source = _mock_source(
         "src-pricing",
         f"{rival} — Pricing page (demo snapshot)",
@@ -293,6 +321,10 @@ async def news_track(state: RivalScopeState) -> PartialState:
     if is_real_mode():
         return await _run_track(state, "recent_news", "news_track", rival, source_type="news")
 
+    _mock_trace(
+        state, "recent_news", kind=trace_buffer.KIND_TOOL, name="tavily_search",
+        summary=f"[recent_news] mock search for {rival} \u2192 1 news source",
+    )
     source = _mock_source(
         "src-news",
         f"{rival} — Recent news summary (demo snapshot)",
@@ -356,6 +388,10 @@ async def fact_checker_stub(state: RivalScopeState) -> PartialState:
             "verified_claims": verified,
         }
 
+    _mock_trace(
+        state, "fact_check", kind=trace_buffer.KIND_LLM, name="fact_checker_llm",
+        summary=f"[verifier] mock-verified {len(state['evidence'])} evidence item(s)",
+    )
     verified = [
         VerifiedClaim(
             id=f"vc-{item.id}",
@@ -383,6 +419,63 @@ async def fact_checker_stub(state: RivalScopeState) -> PartialState:
 
 
 # ---------------------------------------------------------------------------
+# Comparison agent (Step 2 — structured two-sided head-to-head)
+# ---------------------------------------------------------------------------
+
+async def comparison_agent(state: RivalScopeState) -> PartialState:
+    req = state["request"]
+
+    if is_real_mode():
+        try:
+            matrix = await asyncio.to_thread(
+                build_comparison_matrix,
+                request=req,
+                sources=state["sources"],
+                evidence=state["evidence"],
+                verified_claims=state["verified_claims"],
+                run_id=state["run_id"],
+            )
+            new_errors: list[str] = []
+        except Exception as exc:
+            msg = f"Comparison agent failed [{type(exc).__name__}] — using fallback matrix."
+            logger.error(msg)
+            from app.services.comparison_agent import build_fallback_matrix
+
+            matrix = build_fallback_matrix(req, state["sources"], state["evidence"])
+            new_errors = [msg]
+
+        step, events = _with_progress(
+            state,
+            "comparison_agent",
+            f"Built head-to-head comparison — {len(matrix.rows)} dimension(s) for "
+            f"{req.our_company} vs {req.competitor}.",
+        )
+        return {
+            "current_step": step,
+            "progress_events": events,
+            "comparison_matrix": matrix,
+            "errors": new_errors,
+        }
+
+    _mock_trace(
+        state, "comparison", kind=trace_buffer.KIND_LLM, name="comparison_agent_llm",
+        summary=f"[analyst] mock head-to-head for {req.our_company} vs {req.competitor}",
+    )
+    matrix = build_mock_comparison_matrix(req)
+    step, events = _with_progress(
+        state,
+        "comparison_agent",
+        f"Demo: built {len(matrix.rows)}-dimension comparison for "
+        f"{req.our_company} vs {req.competitor}.",
+    )
+    return {
+        "current_step": step,
+        "progress_events": events,
+        "comparison_matrix": matrix,
+    }
+
+
+# ---------------------------------------------------------------------------
 # Report generator
 # ---------------------------------------------------------------------------
 
@@ -396,6 +489,8 @@ async def report_generator(state: RivalScopeState) -> PartialState:
         TOTAL_STEPS,
     )
 
+    matrix = state.get("comparison_matrix")
+
     if is_real_mode():
         try:
             report = await asyncio.to_thread(
@@ -404,6 +499,7 @@ async def report_generator(state: RivalScopeState) -> PartialState:
                 sources=state["sources"],
                 evidence=state["evidence"],
                 verified_claims=state["verified_claims"],
+                comparison_matrix=matrix,
                 warnings=list(state["errors"]),
                 run_id=state["run_id"],
             )
@@ -412,6 +508,7 @@ async def report_generator(state: RivalScopeState) -> PartialState:
             logger.error(msg)
             report = build_mock_report(state["request"])
             report.research_mode = "real"
+            report.comparison_matrix = matrix
             report.warnings = [msg]
 
         step, events = _with_progress(
@@ -422,7 +519,12 @@ async def report_generator(state: RivalScopeState) -> PartialState:
         )
         return {"current_step": step, "progress_events": events, "final_report": report}
 
+    _mock_trace(
+        state, "report", kind=trace_buffer.KIND_LLM, name="report_generator_llm",
+        summary="[synthesizer] mock structured report + battlecard JSON",
+    )
     report = build_mock_report(state["request"])
+    report.comparison_matrix = matrix
     step, events = _with_progress(
         state,
         "report_generator",

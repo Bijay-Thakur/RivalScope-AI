@@ -42,6 +42,11 @@ GEMINI_MODEL=gemini-2.5-flash
 
 RESEARCH_MODE=real
 
+# EXTRACT_TOP_N=3       # top-N ranked URLs per (track, company) sent to TavilyExtract
+# EXTRACT_MAX_CHARS=6000  # cap merged full-page content per result
+# GROQ_MAX_PAYLOAD_CHARS=16000  # est. prompt size above this -> skip Groq (avoid 413), use Gemini directly
+# MAX_CONTEXT_CHARS=50000       # safety cap on two-sided context; trims lowest-cred evidence first
+
 APP_ENV=development
 LOG_LEVEL=INFO
 CORS_ORIGINS=http://localhost:3000
@@ -57,6 +62,10 @@ CORS_ORIGINS=http://localhost:3000
 | `GROQ_MODEL` | No | `llama-3.1-8b-instant` |
 | `GEMINI_MODEL` | No | `gemini-2.5-flash` |
 | `RESEARCH_MODE` | No | `mock` |
+| `EXTRACT_TOP_N` | No | `3` |
+| `EXTRACT_MAX_CHARS` | No | `6000` |
+| `GROQ_MAX_PAYLOAD_CHARS` | No | `16000` |
+| `MAX_CONTEXT_CHARS` | No | `50000` |
 
 ---
 
@@ -232,7 +241,7 @@ cd backend
 python scripts/run_evaluation.py --experiment-name phase4_real_smoke_test --max-tasks 2
 ```
 
-Do not run all 20 tasks in real mode during development unless you intend to spend significant Tavily/Groq credits.
+Do not run all 22 tasks in real mode during development unless you intend to spend significant Tavily/Groq credits.
 
 ### Example result table
 
@@ -269,14 +278,15 @@ These are **initial smoke results**, not a full 20-task benchmark. Scores reflec
 ### Evaluation project layout
 
 ```text
-app/evaluation/
-  benchmark_tasks.json   # 20 benchmark cases
-  schemas.py             # BenchmarkTask, TaskScore, ExperimentResult
+app/evaluation/          # single unified eval system (structural + grounding + comparison)
+  benchmark_tasks.json   # 22 benchmark cases (20 + 2 migrated from old evals/)
+  schemas.py             # BenchmarkTask, TaskScore, ExperimentResult, Verdict, ClaimVerdict
   loader.py              # load_benchmark_tasks()
-  scorers.py             # deterministic scoring functions
-  runner.py              # run_evaluation()
-  report_writer.py       # JSON, CSV, summary outputs
-  failure_analysis.py    # failure mode Markdown reports
+  scorers.py             # deterministic scorers + comparison metrics + grounding aggregation
+  judge.py               # async LLM-as-judge grounding (Gemini, structured output)
+  runner.py              # run_evaluation(mode=structural|full)
+  report_writer.py       # JSON, CSV, Markdown summary (headline metrics)
+  failure_analysis.py    # failure mode Markdown reports (incl. comparison-matrix issues)
 
 app/observability/
   metrics.py             # compute_run_metrics() → JSONL
@@ -289,61 +299,68 @@ scripts/
 
 ---
 
-## Grounding Eval — Reference-Free Faithfulness
+## Eval Modes — Structural vs Full
 
-Answers item 5 above: is each report claim actually supported by the source it cites?
-This is separate from the Phase 4 benchmark scorer (which checks task completion, not
-factual grounding).
+There is **one** eval system (`app/evaluation/`). It runs in two modes via `--mode`:
 
-**Method:** offline, in-process. `evals/harness.py` calls `run_research_graph()` directly
-(not HTTP) so it can read `report.evidence[]` and join each claim's `source_id` against
-`report.sources[]`. There is no gold "correct answer" set — the web changes constantly —
-so this measures faithfulness to *retrieved* sources, the same idea as RAGAS faithfulness,
-applied to open web research instead of a fixed corpus.
-
-Per claim, an LLM judge (`evals/judge.py`) reads the claim + its cited source text and
-returns one of:
-
-| Verdict | Meaning |
-| --- | --- |
-| `supported` | fully entailed by the source text |
-| `partial` | source text partly supports it |
-| `unsupported` | source text is silent on the claim |
-| `contradicted` | source text states the opposite (strongest hallucination signal) |
-| `citation_invalid` | `source_id` doesn't match any source in the report — decided deterministically, no LLM call |
-
-**Headline metric:** `grounding_rate_strict` = `supported / total_claims`.
-
-**Judge model bias:** the judge uses `JUDGE_MODEL` (default `gemini-2.5-pro`), a different
-and stronger tier than the synthesis model (`GEMINI_MODEL`, default `gemini-2.5-flash`).
-This reduces — but does not eliminate — self-evaluation bias (a model judging its own
-family's output). Treat absolute numbers as directional, not ground truth; the calibration
-breakdown (grounding rate bucketed by the evidence's self-reported confidence) is one way
-to sanity-check whether the pipeline's own confidence tiers track actual grounding.
-
-### Run it
+- `--mode structural` (default) — deterministic only, **no LLM calls, no API keys needed**.
+  Fast, free regression-catcher. Computes: task completion, section coverage, source-type
+  mix, citation integrity, latency, plus the comparison-quality metrics below.
+- `--mode full` — everything in structural **plus** LLM-as-judge grounding.
 
 ```bash
-# needs TAVILY_API_KEY + (GOOGLE_API_KEY or GEMINI_API_KEY) — judge always uses Gemini
-python -m evals.harness --limit 3
-python -m evals.harness --dataset evals/datasets/company_pairs.json --out evals/results
+# structural: offline, deterministic (mock research mode needs no keys)
+python scripts/run_evaluation.py --mode structural --limit 5
+
+# full: adds grounding + comparison grounding (needs GOOGLE_API_KEY/GEMINI_API_KEY for judge)
+python scripts/run_evaluation.py --mode full --limit 3 --experiment full_smoke
+
+# full live run (real research + judge) — writes headline metrics to eval_results/<exp>_summary.md
+python scripts/run_evaluation.py --mode full --limit 5 --experiment rivalscope_live_v1 --out eval_results
 ```
 
-Writes `evals/results/eval_<timestamp>.json` and overwrites `evals/results/latest_summary.json`
-(gitignored). Prints a Markdown summary: headline grounding rate, hallucination rate,
-per-report-type breakdown, calibration.
+The live run needs `GOOGLE_API_KEY` + `TAVILY_API_KEY` (and `RESEARCH_MODE=real`), with
+`JUDGE_MODEL` set to a stronger Gemini tier than synthesis. The generated
+`<experiment>_summary.md` carries the headline metrics: `comparison_two_sidedness`,
+`grounding_rate`, `hallucination_rate`, and `comparison_citation_validity`.
 
-### Layout
+Flags: `--mode`, `--limit` (alias `--max-tasks`), `--experiment` (alias `--experiment-name`),
+`--dataset PATH`, `--out DIR`.
 
-```text
-evals/
-  schemas.py    # Verdict enum, ClaimVerdict, ReportEvalResult, EvalSummary
-  judge.py      # async LLM-as-judge (Gemini, structured output)
-  metrics.py    # pure aggregation — no LLM/IO, fully unit-tested without API keys
-  harness.py    # orchestrates graph -> judge -> metrics -> write + print
-  datasets/company_pairs.json   # 10 real, well-known competitor pairs
-  results/                      # gitignored eval outputs
-```
+### Comparison-quality metrics (headline — deterministic, no API)
+
+Computed from the Step 2 `ComparisonMatrix` on the report, so they measure the original
+one-sidedness bug directly:
+
+- **`comparison_two_sidedness`** — % of matrix rows where BOTH `ourValue` and
+  `competitorValue` are filled and not `"Not found in available sources"`. This is the
+  headline number for the one-sided bug.
+- **`comparison_citation_validity`** — % of rows whose cited `ourSourceIds` /
+  `competitorSourceIds` all resolve to real `report.sources` ids.
+- **`advantage_distribution`** — count of `advantage` flags; a 100%-one-side distribution is
+  flagged as suspicious (informational, not pass/fail).
+
+### Grounding metrics (`--mode full` — LLM-as-judge)
+
+Reference-free faithfulness: is each claim actually supported by the source it cites? There
+is no gold "correct answer" set — the web changes — so this measures faithfulness to
+*retrieved* sources (RAGAS-style), applied to open web research.
+
+Per claim the judge (`app/evaluation/judge.py`) returns `supported` / `partial` /
+`unsupported` / `contradicted`; `citation_invalid` is decided deterministically (no LLM).
+
+- **`grounding_rate`** = `supported / total_claims`.
+- **`hallucination_rate`** = `contradicted / total_claims`.
+- **`comparison_grounding`** = % of judged matrix cells the cited source actually supports.
+
+**Judge self-eval bias:** the judge uses `JUDGE_MODEL` (default `gemini-2.5-pro`), a
+different/stronger tier than the synthesis model (`GEMINI_MODEL`, default
+`gemini-2.5-flash`). This reduces — but does not eliminate — self-evaluation bias (a model
+judging its own family's output). Treat absolute grounding numbers as directional, not
+ground truth.
+
+Every run writes JSON + CSV + a Markdown summary (with the headline numbers) and a failure
+mode report to `--out` (default `backend/eval_results/`, gitignored).
 
 ---
 
@@ -361,7 +378,7 @@ With tracing on: LangGraph's `.ainvoke()` and every LangChain chat model call
 (Groq/Gemini synthesis, fact-checker, judge) auto-trace to LangSmith — no graph code
 changes needed, it's purely env-var driven. Custom non-LangChain functions are wrapped
 with `@traceable` explicitly: `search_web`, `extract_urls` (`app/services/search.py`),
-`judge_claim` (`evals/judge.py`), and the harness run itself (`evals/harness.py`).
+and `judge_claim` (`app/evaluation/judge.py`).
 
 With tracing off (default) or `langsmith` not installed, `app/observability/tracing.py`
 falls back to a no-op `@traceable` — nothing crashes, nothing is sent anywhere.
@@ -371,7 +388,7 @@ falls back to a no-op `@traceable` — nothing crashes, nothing is sent anywhere
 ## Development Cost Control
 
 - Keep `max_results_per_query` small (default is 3) — each query consumes Tavily credits and increases LLM context size.
-- Use `--max-tasks` with `scripts/run_evaluation.py` — do not run all 20 benchmark tasks in real mode during development.
+- Use `--limit`/`--max-tasks` with `scripts/run_evaluation.py` — do not run all 22 benchmark tasks in real mode during development.
 - Do not run benchmark or load-test loops in real mode without budgeting for Tavily and Groq usage.
 - Prefer mock mode for UI development and CI — it is instant, free, and deterministic.
 
@@ -383,7 +400,7 @@ falls back to a no-op `@traceable` — nothing crashes, nothing is sent anywhere
 | --- | --- | --- |
 | `GET` | `/health` | Service health check |
 | `POST` | `/api/research` | Run the full workflow; returns `{ "report": { ... } }` |
-| `GET` | `/api/research/stream` | SSE stream of progress events, then `final_report` |
+| `GET` | `/api/research/stream` | Live SSE: `agent_status` + `token` as nodes run, then `final_report` |
 
 ### `POST /api/research`
 
@@ -410,22 +427,49 @@ Query parameters:
 /api/research/stream?our_company=ClickUp&competitor=Notion&market=Project%20management&report_type=quick_brief
 ```
 
-SSE event types:
+SSE event types (see "Real-time streaming" below):
 
-- `progress` — step update with `runId`, `step`, `name`, `message`, `status`
+- `agent_status` — per-node status: `{ runId, step, name, status: "working" | "done", message? }`
+- `token` — best-effort live LLM token delta: `{ step, node, delta }`
 - `final_report` — complete `CompetitorReport` payload
 - `error` — workflow failure or missing keys
 
-Real-mode progress sequence:
+Node execution order (9 steps, `constants.PROGRESS_STEP_LABELS`):
 
-1. Normalizing research input
-2. Creating research plan — 4 research tracks
-3. Searching company profile sources
-4. Searching product and feature sources
-5. Searching pricing sources
-6. Searching recent news sources
-7. Verifying evidence claims
-8. Generating source-grounded report
+1. Normalize input
+2. Create research plan — 4 tracks
+3-6. Company profile / product / pricing / news tracks (run in parallel)
+7. Fact-check evidence
+8. Comparison agent — structured head-to-head
+9. Report generator — source-grounded report
+
+---
+
+## Real-time streaming
+
+The stream is **live**, driven by LangGraph's `astream_events(version="v2")` — events are
+emitted **as nodes execute**, not replayed after the fact. (The old implementation ran the
+whole graph to completion and then replayed saved progress events with an artificial delay;
+that is gone.)
+
+Mapping:
+
+- node `on_chain_start` → `agent_status` `working` (the UI lights that agent up with a glow)
+- node `on_chain_end` → `agent_status` `done` (agent checks off; carries its progress message)
+- `on_chat_model_stream` → `token` deltas for the active LLM node (comparison agent, report
+  generator), streamed live into that agent's card
+- graph completion → `final_report`
+
+**Token streaming is best-effort.** Gemini models are constructed with `streaming=True` so
+`astream_events` can surface token deltas; `.invoke()` still returns the fully aggregated
+result, so the synchronous `POST /api/research` path and the offline eval are unaffected.
+If token events don't arrive, **per-agent status and progress still work fully** (graceful
+degrade) — the glow and step progression are driven by `agent_status` alone.
+
+The frontend (`AgentTrackerModal`) shows each agent as idle → working (pulsing amber glow) →
+done (check), advancing one at a time in real time, with live token text streaming into the
+active card. Animations respect `prefers-reduced-motion` (status stays legible, motion is
+dropped).
 
 ---
 
@@ -434,7 +478,7 @@ Real-mode progress sequence:
 ```text
 app/graph/
   state.py      # RivalScopeState — TypedDict with operator.add reducers on list fields
-  nodes.py      # Eight node functions; each branches on RESEARCH_MODE
+  nodes.py      # Nine node functions; each branches on RESEARCH_MODE
   workflow.py   # StateGraph definition and run_research_graph() entry point
   constants.py  # Step labels and TOTAL_STEPS
 ```

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Header } from "@/components/Header";
+import { TopNav } from "@/components/TopNav";
+import { RunProvider } from "@/lib/runContext";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,8 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "RivalScope AI",
-  description:
-    "Source-grounded competitive intelligence briefs for GTM teams",
+  description: "Source-grounded competitive intelligence for GTM teams",
 };
 
 export default function RootLayout({
@@ -27,15 +27,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col bg-neutral-950 font-sans text-neutral-200 antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col font-sans antialiased`}
       >
-        <Header />
-        <div className="flex-1">{children}</div>
-        <footer className="border-t border-neutral-800 bg-neutral-950 py-8 text-center">
-          <p className="text-xs text-neutral-500">
-            RivalScope AI — Portfolio demo · Mock data via local backend
-          </p>
-        </footer>
+        <RunProvider>
+          <TopNav />
+          <div className="flex-1 px-4 pb-20 pt-6 sm:px-6">
+            <div className="mx-auto max-w-6xl">{children}</div>
+          </div>
+        </RunProvider>
       </body>
     </html>
   );

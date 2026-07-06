@@ -3,6 +3,7 @@ from typing import Annotated, TypedDict
 
 from app.schemas.events import ProgressEvent
 from app.schemas.report import (
+    ComparisonMatrix,
     CompetitorReport,
     EvidenceItem,
     Source,
@@ -24,5 +25,7 @@ class RivalScopeState(TypedDict):
     evidence: Annotated[list[EvidenceItem], operator.add]
     sources: Annotated[list[Source], operator.add]
     verified_claims: Annotated[list[VerifiedClaim], operator.add]
+    comparison_matrix: ComparisonMatrix | None
     final_report: CompetitorReport | None
     errors: Annotated[list[str], operator.add]
+    traces: list[dict]

@@ -6,6 +6,7 @@ PROGRESS_STEP_LABELS = [
     "pricing_track",
     "news_track",
     "fact_checker_stub",
+    "comparison_agent",
     "report_generator",
 ]
 

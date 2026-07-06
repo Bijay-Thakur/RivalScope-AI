@@ -2,50 +2,59 @@ from app.schemas.research import ResearchRequest
 
 
 def build_company_profile_queries(
-    our_company: str, competitor: str, market: str
+    company: str, market: str, *, rival: str | None = None  # noqa: ARG001
 ) -> list[str]:
     return [
-        f"{competitor} official website about company {market}",
-        f"{competitor} company profile overview {market}",
-        f"{our_company} vs {competitor} {market}",
+        f"{company} official website about company {market}",
+        f"{company} company profile overview {market}",
     ]
 
 
 def build_product_queries(
-    our_company: str, competitor: str, market: str
+    company: str, market: str, *, rival: str | None = None  # noqa: ARG001
 ) -> list[str]:
     return [
-        f"{competitor} product features {market} official",
-        f"{competitor} use cases {market} product",
-        f"{competitor} vs {our_company} features comparison {market}",
+        f"{company} product features {market} official",
+        f"{company} use cases {market} product",
     ]
 
 
 def build_pricing_queries(
-    our_company: str, competitor: str, market: str
+    company: str, market: str, *, rival: str | None = None  # noqa: ARG001
 ) -> list[str]:
     return [
-        f"{competitor} pricing plans official site",
-        f"{competitor} pricing packages {market}",
-        f"{competitor} plans cost per seat {market}",
+        f"{company} pricing plans official site",
+        f"{company} pricing packages {market}",
     ]
 
 
 def build_news_queries(
-    our_company: str, competitor: str, market: str
+    company: str, market: str, *, rival: str | None = None  # noqa: ARG001
 ) -> list[str]:
     return [
-        f"{competitor} latest news 2025 2026",
-        f"{competitor} product launch funding partnership 2026",
-        f"{competitor} strategic moves {market} recent",
+        f"{company} latest news 2025 2026",
+        f"{company} product launch funding partnership 2026",
     ]
 
 
-def build_all_queries(request: ResearchRequest) -> dict[str, list[str]]:
-    args = (request.our_company, request.competitor, request.market)
+_TRACK_BUILDERS = {
+    "company_profile": build_company_profile_queries,
+    "product_features": build_product_queries,
+    "pricing": build_pricing_queries,
+    "recent_news": build_news_queries,
+}
+
+
+def build_all_queries(request: ResearchRequest) -> dict[str, dict[str, list[str]]]:
+    """Symmetric queries for both sides. Shape: dict[track][company] = list[str]."""
+    sides = {
+        request.our_company: request.competitor,
+        request.competitor: request.our_company,
+    }
     return {
-        "company_profile": build_company_profile_queries(*args),
-        "product_features": build_product_queries(*args),
-        "pricing": build_pricing_queries(*args),
-        "recent_news": build_news_queries(*args),
+        track: {
+            company: builder(company, request.market, rival=rival)
+            for company, rival in sides.items()
+        }
+        for track, builder in _TRACK_BUILDERS.items()
     }

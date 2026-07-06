@@ -39,14 +39,34 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--experiment-name",
+        "--experiment",
+        dest="experiment_name",
         default="phase4_baseline",
         help="Name for this evaluation run (default: phase4_baseline)",
     )
     parser.add_argument(
         "--max-tasks",
+        "--limit",
+        dest="max_tasks",
         type=int,
+        default=5,
+        help="Limit the number of benchmark tasks to run (default: 5)",
+    )
+    parser.add_argument(
+        "--mode",
+        choices=("structural", "full"),
+        default="structural",
+        help="structural = deterministic only (offline, free); full = + LLM-judge grounding",
+    )
+    parser.add_argument(
+        "--dataset",
         default=None,
-        help="Limit the number of benchmark tasks to run",
+        help="Path to benchmark tasks JSON (default: app/evaluation/benchmark_tasks.json)",
+    )
+    parser.add_argument(
+        "--out",
+        default="backend/eval_results",
+        help="Output directory for results (default: backend/eval_results)",
     )
     return parser.parse_args()
 
@@ -70,8 +90,10 @@ async def _run(args: argparse.Namespace):
     result = await run_evaluation(
         experiment_name=args.experiment_name,
         max_tasks=args.max_tasks,
+        mode=args.mode,
+        dataset_path=args.dataset,
     )
-    return result, write_experiment_results(result)
+    return result, write_experiment_results(result, output_dir=args.out)
 
 
 def main() -> None:
@@ -88,11 +110,19 @@ def main() -> None:
     print("\n" + "=" * 62)
     print("  EVALUATION SUMMARY")
     print("=" * 62)
+    def _pct(v):
+        return f"{v:.1%}" if v is not None else "n/a"
+
     print(f"  Total tasks        : {result.total_tasks}")
+    print(f"  Eval mode          : {result.eval_mode}")
     print(f"  Average score      : {result.average_score:.4f}")
     print(f"  Average latency (s): {result.average_latency_seconds:.2f}")
     print(f"  Research mode      : {result.research_mode}")
     print(f"  Model provider     : {result.model_provider}")
+    print(f"  Two-sidedness      : {_pct(result.avg_comparison_two_sidedness)}")
+    print(f"  Cmp citation valid : {_pct(result.avg_comparison_citation_validity)}")
+    print(f"  Grounding rate     : {_pct(result.avg_grounding_rate)}")
+    print(f"  Hallucination rate : {_pct(result.avg_hallucination_rate)}")
     print("\n  Output files:")
     print(f"    JSON     : {output_paths['json']}")
     print(f"    CSV      : {output_paths['csv']}")

@@ -76,7 +76,9 @@ def verify_evidence_claims(
             messages=[
                 {"role": "system", "content": FACT_CHECKER_SYSTEM_PROMPT},
                 {"role": "user", "content": user_message},
-            ]
+            ],
+            run_id=run_id,
+            call_name="fact_checker_llm",
         )
         raw = safe_get_message_text(response)
         parsed = extract_json_from_text(raw)

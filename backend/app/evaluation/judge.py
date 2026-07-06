@@ -1,4 +1,6 @@
-"""LLM-as-judge: does the cited source text support the claim? Reference-free faithfulness."""
+"""LLM-as-judge grounding (ported from evals/). Reference-free faithfulness:
+does the cited SOURCE TEXT support the CLAIM? Judge model defaults to a stronger
+tier than synthesis (settings.judge_model) to reduce self-eval bias."""
 
 import asyncio
 import logging
@@ -6,8 +8,8 @@ import logging
 from pydantic import BaseModel, Field
 
 from app.core.config import settings
+from app.evaluation.schemas import Verdict
 from app.observability.tracing import traceable
-from evals.schemas import Verdict
 
 logger = logging.getLogger(__name__)
 

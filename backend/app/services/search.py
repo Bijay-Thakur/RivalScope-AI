@@ -4,6 +4,7 @@ from langchain_tavily import TavilyExtract, TavilySearch
 
 from app.core.config import settings
 from app.core.logging import log_run_event
+from app.observability import trace_buffer
 from app.observability.tracing import traceable
 
 logger = logging.getLogger(__name__)
@@ -48,7 +49,19 @@ def search_web(
     )
 
     try:
-        raw = tool.invoke({"query": query})
+        with trace_buffer.trace_call(
+            run_id,
+            kind=trace_buffer.KIND_TOOL,
+            name="tavily_search",
+            track=track,
+            summary=f"search: \u201c{query}\u201d",
+            detail={"query": query, "maxResults": max_results},
+        ) as span:
+            raw = tool.invoke({"query": query})
+            _items = raw.get("results") if isinstance(raw, dict) else raw
+            _count = len(_items) if isinstance(_items, list) else 0
+            span["summary"] = f"tavily_search \u201c{query}\u201d \u2192 {_count} result(s)"
+            span["detail"]["resultCount"] = _count
     except Exception as exc:
         failed_payload: dict = {
             "query": query,
@@ -87,7 +100,12 @@ def search_web(
 
 
 @traceable(run_type="tool", name="extract_urls")
-def extract_urls(urls: list[str]) -> list[dict]:
+def extract_urls(
+    urls: list[str],
+    *,
+    run_id: str | None = None,
+    track: str | None = None,
+) -> list[dict]:
     if not urls:
         return []
 
@@ -96,7 +114,26 @@ def extract_urls(urls: list[str]) -> list[dict]:
     tool = TavilyExtract(tavily_api_key=settings.tavily_api_key)
 
     try:
-        raw = tool.invoke({"urls": urls})
+        with trace_buffer.trace_call(
+            run_id,
+            kind=trace_buffer.KIND_TOOL,
+            name="tavily_extract",
+            track=track,
+            summary=f"extract {len(urls)} URL(s)",
+            detail={"urlCount": len(urls), "urls": urls[:5]},
+        ) as span:
+            raw = tool.invoke({"urls": urls})
+            _pages = raw.get("results") if isinstance(raw, dict) else raw
+            _chars = 0
+            if isinstance(_pages, list):
+                for _p in _pages:
+                    if isinstance(_p, dict):
+                        _chars += len(_p.get("raw_content") or _p.get("content") or "")
+            span["summary"] = (
+                f"tavily_extract {len(urls)} URL(s) \u2192 "
+                f"{_chars:,} chars cleaned"
+            )
+            span["detail"]["charsExtracted"] = _chars
     except Exception as exc:
         raise RuntimeError(
             f"Tavily extract failed for {len(urls)} URL(s): {type(exc).__name__}"

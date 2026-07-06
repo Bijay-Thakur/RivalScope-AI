@@ -2,64 +2,199 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ProductLabel } from "@/components/ProductLabel";
-import { ReportPreview } from "@/components/ReportPreview";
-import { PANEL_CLASS, PANEL_PADDING } from "@/components/ui/styles";
-import { loadReport } from "@/lib/reportStore";
-import type { CompetitorReport } from "@/types/report";
+import { Badge, Card, DarkCallout, PageHeader, PrimaryButton, StatCard } from "@/components/ui/primitives";
+import { loadSession } from "@/lib/reportStore";
+import type { CompetitorReport, ResearchInput, Source } from "@/types/report";
+
+const REPORT_TYPE_LABELS: Record<string, string> = {
+  quick_brief: "Quick Brief",
+  deep_research: "Deep Research",
+  sales_battlecard: "Sales Battlecard",
+};
 
 export default function ReportPage() {
-  const [report, setReport] = useState<CompetitorReport | null>(null);
-  const [checkedStorage, setCheckedStorage] = useState(false);
+  const [session, setSession] = useState<{
+    report: CompetitorReport;
+    input?: ResearchInput;
+  } | null>(null);
 
   useEffect(() => {
-    setReport(loadReport());
-    setCheckedStorage(true);
+    setSession(loadSession());
   }, []);
 
-  if (!checkedStorage) return null;
-
-  if (!report) {
+  if (!session?.report) {
     return (
-      <main className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8">
-        <section
-          className={`${PANEL_CLASS} ${PANEL_PADDING} flex flex-col items-center text-center`}
-        >
-          <ProductLabel>Output</ProductLabel>
-          <p className="mt-3 text-base font-medium text-neutral-200">No report yet</p>
-          <p className="mt-2 max-w-sm text-sm leading-relaxed text-neutral-500">
-            Generate a brief from the home page first — reports aren&apos;t saved
-            between sessions.
+      <div className="rs-fade-in">
+        <PageHeader badge="Page 4" title="Competitive Report Summary" />
+        <Card className="flex flex-col items-center gap-4 px-6 py-16 text-center">
+          <p className="text-base font-semibold">No report yet</p>
+          <p className="max-w-sm text-sm text-[var(--muted)]">
+            Run a research brief first — the executive summary appears here with cited sources.
           </p>
-          <Link
-            href="/"
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-amber-500 px-5 py-2.5 text-sm font-semibold text-neutral-950 transition-colors hover:bg-amber-400"
-          >
-            Start a new brief
-          </Link>
-        </section>
-      </main>
+          <PrimaryButton onClick={() => (window.location.href = "/")}>
+            Start a research run
+          </PrimaryButton>
+        </Card>
+      </div>
     );
   }
 
+  const { report, input } = session;
+  const title = input
+    ? `${input.ourCompany} vs ${input.competitor}`
+    : "Competitive Report";
+  const subtitle = input
+    ? `${input.market} · ${REPORT_TYPE_LABELS[input.reportType] ?? input.reportType} · Generated from ${report.sources.length} sources`
+    : `Generated from ${report.sources.length} sources`;
+
+  const sourceMap = Object.fromEntries(report.sources.map((s) => [s.id, s]));
+
   return (
-    <main className="mx-auto max-w-4xl px-4 pb-16 pt-8 sm:px-6 sm:pt-10 lg:px-8">
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <div>
-          <ProductLabel tone="gold">Output</ProductLabel>
-          <h1 className="mt-1.5 text-lg font-semibold tracking-tight text-neutral-100 sm:text-xl">
-            Brief preview
-          </h1>
+    <div className="rs-fade-in">
+      <PageHeader
+        badge="Page 4"
+        title="Competitive Report Summary"
+        subtitle="Polished executive output: concise, cited, confidence-scored, and structured for product marketing or sales leadership."
+      />
+
+      <Card className="mb-6 p-6 sm:p-8">
+        <div className="flex flex-wrap items-start justify-between gap-6">
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+            <p className="mt-1 text-sm text-[var(--muted)]">{subtitle}</p>
+            {report.researchMode && (
+              <Badge tone={report.researchMode === "real" ? "ok" : "warn"}>
+                {report.researchMode} mode
+              </Badge>
+            )}
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <StatCard
+              label="Confidence"
+              value={Math.round(report.confidenceScore)}
+              hint="overall"
+              accent="gold"
+            />
+            <StatCard
+              label="Sources"
+              value={report.sources.length}
+              hint="public"
+              accent="green"
+            />
+            <StatCard
+              label="Claims"
+              value={report.evidence.length}
+              hint="evidence"
+              accent="blue"
+            />
+          </div>
         </div>
-        <Link
-          href="/"
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-neutral-800 bg-neutral-900 px-3.5 py-2 text-xs font-medium text-neutral-300 transition-colors hover:border-neutral-700 hover:text-neutral-100"
-        >
-          New Research
-        </Link>
+      </Card>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        <SummaryCard
+          title="Company Snapshot"
+          body={report.companySnapshot}
+          chips={chipsForSection(report.evidence, sourceMap, ["company"])}
+        />
+        <SummaryCard
+          title="Product Positioning"
+          body={report.productPositioning}
+          chips={chipsForSection(report.evidence, sourceMap, ["product", "docs"])}
+        />
+        <SummaryCard
+          title="Pricing Intelligence"
+          body={report.pricingIntelligence}
+          chips={chipsForSection(report.evidence, sourceMap, ["pricing"])}
+        />
       </div>
 
-      <ReportPreview report={report} />
-    </main>
+      <DarkCallout>
+        Design rule: every key sentence should either cite a source chip or be clearly framed as
+        analysis/inference.
+      </DarkCallout>
+
+      <div className="mt-6 flex flex-wrap justify-center gap-3">
+        <Link href="/battlecard">
+          <PrimaryButton>View sales battlecard →</PrimaryButton>
+        </Link>
+        <Link
+          href="/evidence"
+          className="inline-flex items-center rounded-xl border border-[var(--border-strong)] bg-white px-5 py-2.5 text-sm font-semibold hover:bg-[var(--surface-muted)]"
+        >
+          Inspect evidence
+        </Link>
+      </div>
+    </div>
   );
+}
+
+function SummaryCard({
+  title,
+  body,
+  chips,
+}: {
+  title: string;
+  body: string;
+  chips: { label: string; tone: "blue" | "orange" | "green" }[];
+}) {
+  const CHIP_TONE: Record<string, string> = {
+    blue: "bg-[#e3ebfd] text-[#3b5bdb]",
+    orange: "bg-[var(--warn-bg)] text-[var(--warn)]",
+    green: "bg-[var(--ok-bg)] text-[var(--ok)]",
+  };
+
+  return (
+    <Card className="flex flex-col p-6">
+      <h3 className="text-base font-bold tracking-tight">{title}</h3>
+      <p className="mt-3 flex-1 text-sm leading-relaxed text-[var(--muted)]">{body}</p>
+      {chips.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {chips.map((chip, i) => (
+            <span
+              key={`${chip.label}-${i}`}
+              className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${CHIP_TONE[chip.tone]}`}
+            >
+              {chip.label}
+            </span>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function chipsForSection(
+  evidence: CompetitorReport["evidence"],
+  sourceMap: Record<string, Source>,
+  keywords: string[],
+): { label: string; tone: "blue" | "orange" | "green" }[] {
+  const tones: ("blue" | "orange" | "green")[] = ["blue", "orange", "green"];
+  const chips: { label: string; tone: "blue" | "orange" | "green" }[] = [];
+  let idx = 0;
+
+  for (const ev of evidence) {
+    const src = sourceMap[ev.sourceId];
+    if (!src) continue;
+    const type = src.sourceType.toLowerCase();
+    if (!keywords.some((k) => type.includes(k) || ev.claim.toLowerCase().includes(k))) continue;
+    chips.push({
+      label: `[${idx + 1}] ${shortSourceLabel(src)}`,
+      tone: tones[idx % tones.length],
+    });
+    idx++;
+    if (idx >= 3) break;
+  }
+  return chips;
+}
+
+function shortSourceLabel(src: Source): string {
+  const labels: Record<string, string> = {
+    company_page: "Company page",
+    pricing_page: "Pricing page",
+    docs: "Docs",
+    news: "News",
+    blog: "Blog",
+  };
+  return labels[src.sourceType] ?? src.title.slice(0, 24);
 }

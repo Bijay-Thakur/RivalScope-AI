@@ -86,6 +86,29 @@ def _source_coverage_weaknesses(result: ExperimentResult) -> list[str]:
     return weaknesses
 
 
+def _comparison_issues(result: ExperimentResult) -> list[str]:
+    """One-sided comparison rows + invalid matrix citations (Step 4 failure modes)."""
+    issues: list[str] = []
+    for task_score in result.task_scores:
+        one_sided = [n for n in task_score.failure_notes if "One-sided comparison row" in n]
+        invalid = [n for n in task_score.failure_notes if "Invalid matrix citation" in n]
+        if not one_sided and not invalid:
+            continue
+        two = task_score.comparison_two_sidedness
+        val = task_score.comparison_citation_validity
+        detail_parts: list[str] = []
+        if two is not None:
+            detail_parts.append(f"two-sidedness {two:.2f}")
+        if val is not None:
+            detail_parts.append(f"citation validity {val:.2f}")
+        detail = ", ".join(detail_parts) or "no matrix metrics"
+        issues.append(
+            f"- **{task_score.task_id}** — {detail}. "
+            + "; ".join(one_sided + invalid)
+        )
+    return issues
+
+
 def _citation_integrity_issues(result: ExperimentResult) -> list[str]:
     issues: list[str] = []
     for task_score in sorted(result.task_scores, key=lambda score: score.citation_integrity):
@@ -209,6 +232,7 @@ def generate_failure_mode_report(result: ExperimentResult, output_path: str) -> 
     lowest_tasks = sorted(result.task_scores, key=lambda score: score.overall_score)[:5]
     source_weaknesses = _source_coverage_weaknesses(result)
     citation_issues = _citation_integrity_issues(result)
+    comparison_issues = _comparison_issues(result)
     latency_issues = _latency_issues(result)
     recommendations = _recommended_fixes(result, weakest_dimension, common_notes)
 
@@ -271,13 +295,19 @@ def generate_failure_mode_report(result: ExperimentResult, output_path: str) -> 
     else:
         lines.append("- No citation integrity issues detected.")
 
-    lines.extend(["", "## 6. Latency / Efficiency Issues", ""])
+    lines.extend(["", "## 6. Comparison Matrix Issues", ""])
+    if comparison_issues:
+        lines.extend(comparison_issues)
+    else:
+        lines.append("- No one-sided rows or invalid matrix citations detected.")
+
+    lines.extend(["", "## 7. Latency / Efficiency Issues", ""])
     if latency_issues:
         lines.extend(latency_issues)
     else:
         lines.append("- All tasks completed within the 30s efficiency target.")
 
-    lines.extend(["", "## 7. Recommended Fixes for Next Phase", ""])
+    lines.extend(["", "## 8. Recommended Fixes for Next Phase", ""])
     for index, fix in enumerate(recommendations, start=1):
         lines.append(f"{index}. {fix}")
 

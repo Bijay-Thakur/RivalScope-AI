@@ -54,6 +54,9 @@ backend/build/
 backend/app/logs/*.log
 backend/app/logs/*.jsonl
 
+# local sqlite database
+backend/app/data/
+
 # grounding eval results (keep .gitkeep)
 backend/evals/results/*.json
 !backend/evals/results/.gitkeep

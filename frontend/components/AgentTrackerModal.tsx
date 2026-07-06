@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 
 type StageStatus = "complete" | "active" | "future";
 
@@ -19,14 +19,17 @@ const PARALLEL_STAGES: StageDef[] = [
   { step: 6, label: "News Agent", detail: "Scanning recent news" },
 ];
 const STAGE_7: StageDef = { step: 7, label: "Fact-Checking Agent", detail: "Verifying claims against sources" };
-const STAGE_8: StageDef = { step: 8, label: "Report Writer Agent", detail: "Synthesizing the final report" };
+const STAGE_8: StageDef = { step: 8, label: "Comparison Agent", detail: "Building structured head-to-head" };
+const STAGE_9: StageDef = { step: 9, label: "Report Writer Agent", detail: "Synthesizing the final report" };
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 9;
 
 interface AgentTrackerModalProps {
   isOpen: boolean;
   isRunning: boolean;
   completedSteps: number[];
+  workingSteps: number[];
+  streamedText: Record<number, string>;
   progressMessage: string | null;
   error: string | null;
   runLabel: { ourCompany: string; competitor: string } | null;
@@ -37,39 +40,32 @@ export function AgentTrackerModal({
   isOpen,
   isRunning,
   completedSteps,
+  workingSteps,
+  streamedText,
   progressMessage,
   error,
   runLabel,
   onClose,
 }: AgentTrackerModalProps) {
   const doneSet = useMemo(() => new Set(completedSteps), [completedSteps]);
-  const maxCompleted = completedSteps.length ? Math.max(...completedSteps) : 0;
+  const workingSet = useMemo(() => new Set(workingSteps), [workingSteps]);
   const allDone = !isRunning && !error && doneSet.size >= TOTAL_STEPS;
   const canDismiss = !isRunning;
 
-  // Sequential stages (1, 2, 7, 8) always arrive in true order, so "own event is the
-  // most recent one" cleanly means "still active".
-  const sequentialStatus = (step: number): StageStatus => {
-    if (allDone) return "complete";
-    if (doneSet.has(step) && maxCompleted > step) return "complete";
-    if (isRunning && doneSet.has(step) && maxCompleted === step) return "active";
+  // Explicit, real-time status from the backend's agent_status events. Works for both
+  // sequential nodes and the parallel track cluster (each node reports its own state).
+  const statusOf = (step: number): StageStatus => {
+    if (allDone || doneSet.has(step)) return "complete";
+    if (workingSet.has(step)) return "active";
     return "future";
   };
+  const sequentialStatus = statusOf;
+  const laneStatus = statusOf;
 
-  // Parallel tracks (3-6) run concurrently server-side and their completion events can
-  // arrive in ANY order — never key completion off arrival order, only off doneSet
-  // membership, or a later-completing sibling would make an earlier one look unfinished.
-  const laneStatus = (step: number): StageStatus => {
-    if (allDone) return "complete";
-    if (doneSet.has(step)) return "complete";
-    if (isRunning && maxCompleted >= STAGE_2.step) return "active";
-    return "future";
-  };
-
-  const clusterAllDone = PARALLEL_STAGES.every((s) => doneSet.has(s.step));
-  const clusterStatus: StageStatus = allDone || clusterAllDone
+  const clusterStatus: StageStatus = allDone ||
+    PARALLEL_STAGES.every((s) => doneSet.has(s.step))
     ? "complete"
-    : isRunning && maxCompleted >= STAGE_2.step
+    : PARALLEL_STAGES.some((s) => workingSet.has(s.step))
       ? "active"
       : "future";
 
@@ -135,12 +131,12 @@ export function AgentTrackerModal({
             </div>
           ) : (
             <div className="flex flex-col">
-              <StageRow stage={STAGE_1} status={sequentialStatus(STAGE_1.step)} />
+              <StageRow stage={STAGE_1} status={sequentialStatus(STAGE_1.step)} streamedText={streamedText[STAGE_1.step]} />
               <Connector
                 flowing={sequentialStatus(STAGE_1.step) === "complete" && sequentialStatus(STAGE_2.step) !== "complete"}
                 complete={sequentialStatus(STAGE_2.step) === "complete"}
               />
-              <StageRow stage={STAGE_2} status={sequentialStatus(STAGE_2.step)} />
+              <StageRow stage={STAGE_2} status={sequentialStatus(STAGE_2.step)} streamedText={streamedText[STAGE_2.step]} />
               <Connector
                 flowing={sequentialStatus(STAGE_2.step) === "complete" && clusterStatus !== "complete"}
                 complete={clusterStatus === "complete"}
@@ -150,18 +146,24 @@ export function AgentTrackerModal({
                 stages={PARALLEL_STAGES}
                 laneStatus={laneStatus}
                 clusterStatus={clusterStatus}
+                streamedText={streamedText}
               />
 
               <Connector
                 flowing={clusterStatus === "complete" && sequentialStatus(STAGE_7.step) !== "complete"}
                 complete={sequentialStatus(STAGE_7.step) === "complete"}
               />
-              <StageRow stage={STAGE_7} status={sequentialStatus(STAGE_7.step)} />
+              <StageRow stage={STAGE_7} status={sequentialStatus(STAGE_7.step)} streamedText={streamedText[STAGE_7.step]} />
               <Connector
                 flowing={sequentialStatus(STAGE_7.step) === "complete" && sequentialStatus(STAGE_8.step) !== "complete"}
                 complete={sequentialStatus(STAGE_8.step) === "complete"}
               />
-              <StageRow stage={STAGE_8} status={sequentialStatus(STAGE_8.step)} isLast />
+              <StageRow stage={STAGE_8} status={sequentialStatus(STAGE_8.step)} streamedText={streamedText[STAGE_8.step]} />
+              <Connector
+                flowing={sequentialStatus(STAGE_8.step) === "complete" && sequentialStatus(STAGE_9.step) !== "complete"}
+                complete={sequentialStatus(STAGE_9.step) === "complete"}
+              />
+              <StageRow stage={STAGE_9} status={sequentialStatus(STAGE_9.step)} streamedText={streamedText[STAGE_9.step]} isLast />
             </div>
           )}
         </div>
@@ -207,10 +209,12 @@ function ParallelCluster({
   stages,
   laneStatus,
   clusterStatus,
+  streamedText,
 }: {
   stages: StageDef[];
   laneStatus: (step: number) => StageStatus;
   clusterStatus: StageStatus;
+  streamedText: Record<number, string>;
 }) {
   return (
     <div
@@ -227,37 +231,53 @@ function ParallelCluster({
       </p>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {stages.map((stage) => (
-          <LaneCard key={stage.step} stage={stage} status={laneStatus(stage.step)} />
+          <LaneCard
+            key={stage.step}
+            stage={stage}
+            status={laneStatus(stage.step)}
+            streamedText={streamedText[stage.step]}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function LaneCard({ stage, status }: { stage: StageDef; status: StageStatus }) {
+function LaneCard({
+  stage,
+  status,
+  streamedText,
+}: {
+  stage: StageDef;
+  status: StageStatus;
+  streamedText?: string;
+}) {
   return (
     <div
-      className={`flex items-center gap-3 rounded-lg border px-3.5 py-3 ${
+      className={`rounded-lg border px-3.5 py-3 transition-shadow ${
         status === "complete"
           ? "border-amber-500/20 bg-amber-500/5"
           : status === "active"
-            ? "border-neutral-700 bg-neutral-900"
+            ? "border-amber-500/40 bg-neutral-900 shadow-[0_0_0_1px_rgba(245,158,11,0.25),0_0_18px_-4px_rgba(245,158,11,0.5)] motion-safe:animate-[agent-glow_2s_ease-in-out_infinite]"
             : "border-neutral-800 bg-neutral-900/60"
       }`}
     >
-      <StatusIcon status={status} stepNumber={stage.step} size="sm" />
-      <div className="min-w-0">
-        <p
-          className={`truncate text-sm font-medium ${
-            status === "future" ? "text-neutral-600" : "text-neutral-200"
-          }`}
-        >
-          {stage.label}
-        </p>
-        <p className="truncate text-xs text-neutral-500">
-          {status === "future" ? "Queued" : stage.detail}
-        </p>
+      <div className="flex items-center gap-3">
+        <StatusIcon status={status} stepNumber={stage.step} size="sm" />
+        <div className="min-w-0">
+          <p
+            className={`truncate text-sm font-medium ${
+              status === "future" ? "text-neutral-600" : "text-neutral-200"
+            }`}
+          >
+            {stage.label}
+          </p>
+          <p className="truncate text-xs text-neutral-500">
+            {status === "future" ? "Queued" : stage.detail}
+          </p>
+        </div>
       </div>
+      {status === "active" && streamedText ? <StreamPanel text={streamedText} /> : null}
     </div>
   );
 }
@@ -265,34 +285,66 @@ function LaneCard({ stage, status }: { stage: StageDef; status: StageStatus }) {
 function StageRow({
   stage,
   status,
+  streamedText,
   isLast = false,
 }: {
   stage: StageDef;
   status: StageStatus;
+  streamedText?: string;
   isLast?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-4">
-      <StatusIcon status={status} stepNumber={stage.step} size="md" />
-      <div className="min-w-0 flex-1 py-2.5">
-        <p
-          className={`text-sm ${
-            status === "future"
-              ? "text-neutral-600"
-              : status === "active"
-                ? "font-medium text-neutral-100"
-                : "text-neutral-300"
-          }`}
-        >
-          {stage.label}
-        </p>
-        <p className="mt-0.5 text-xs text-neutral-500">
-          {status === "future" ? "Queued" : stage.detail}
-        </p>
+    <div className="flex flex-col">
+      <div className="flex items-center gap-4">
+        <StatusIcon status={status} stepNumber={stage.step} size="md" />
+        <div className="min-w-0 flex-1 py-2.5">
+          <p
+            className={`text-sm ${
+              status === "future"
+                ? "text-neutral-600"
+                : status === "active"
+                  ? "font-medium text-neutral-100"
+                  : "text-neutral-300"
+            }`}
+          >
+            {stage.label}
+          </p>
+          <p className="mt-0.5 text-xs text-neutral-500">
+            {status === "future" ? "Queued" : stage.detail}
+          </p>
+        </div>
+        {isLast && status === "complete" && (
+          <span className="shrink-0 text-xs font-medium text-amber-400">Done</span>
+        )}
       </div>
-      {isLast && status === "complete" && (
-        <span className="shrink-0 text-xs font-medium text-amber-400">Done</span>
-      )}
+      {status === "active" && streamedText ? (
+        <div className="ml-12 mb-1">
+          <StreamPanel text={streamedText} />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+// Live LLM token/thought text streaming into the active agent's card. Auto-scrolls to the
+// newest tokens; top edge fades so older text recedes. Absent tokens -> panel simply
+// never renders (status glow still communicates progress).
+function StreamPanel({ text }: { text: string }) {
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [text]);
+
+  return (
+    <div
+      ref={ref}
+      aria-live="polite"
+      className="mt-2 max-h-24 overflow-y-auto rounded-md border border-neutral-800 bg-neutral-950/70 px-3 py-2 font-mono text-[11px] leading-relaxed text-neutral-400 [mask-image:linear-gradient(to_bottom,transparent,black_1.5rem)]"
+    >
+      <span className="whitespace-pre-wrap break-words">{text}</span>
+      <span className="ml-0.5 inline-block h-3 w-1.5 translate-y-0.5 bg-amber-400/80 motion-safe:animate-pulse" />
     </div>
   );
 }
@@ -339,9 +391,13 @@ function StatusIcon({
   if (status === "active") {
     return (
       <span
-        className={`relative z-10 flex ${dims} shrink-0 items-center justify-center rounded-full border border-neutral-700 bg-neutral-900`}
+        className={`relative z-10 flex ${dims} shrink-0 items-center justify-center rounded-full border border-amber-500/50 bg-neutral-900`}
       >
-        <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-neutral-700 border-t-amber-400" />
+        <span
+          className="absolute inset-0 rounded-full bg-amber-400/20 motion-safe:animate-[agent-ring_2s_ease-in-out_infinite]"
+          aria-hidden="true"
+        />
+        <span className="relative h-3.5 w-3.5 animate-spin rounded-full border-2 border-neutral-700 border-t-amber-400 motion-reduce:animate-none" />
       </span>
     );
   }

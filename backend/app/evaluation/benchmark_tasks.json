@@ -538,5 +538,59 @@
       "CRM integration is a baseline requirement for both platforms"
     ],
     "notes": "RevOps category; sales_battlecard section is especially relevant"
+  },
+  {
+    "id": "task-021-figma-sketch",
+    "our_company": "Figma",
+    "competitor": "Sketch",
+    "market": "UI design tools",
+    "report_type": "sales_battlecard",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "Figma offers browser-based, real-time collaborative UI design",
+      "Sketch is a macOS-native vector design tool for UI/UX",
+      "Figma supports cross-platform access without native install",
+      "Sketch relies on a Mac ecosystem plus plugins for collaboration",
+      "Both support design systems, components, and developer handoff"
+    ],
+    "notes": "Migrated from company_pairs.json; cross-platform vs Mac-native design tooling"
+  },
+  {
+    "id": "task-022-zoom-googlemeet",
+    "our_company": "Zoom",
+    "competitor": "Google Meet",
+    "market": "Video conferencing",
+    "report_type": "sales_battlecard",
+    "expected_sections": [
+      "company_snapshot",
+      "product_positioning",
+      "feature_comparison",
+      "pricing_intelligence",
+      "recent_moves",
+      "strengths",
+      "weaknesses",
+      "sales_battlecard",
+      "sources"
+    ],
+    "expected_source_types": ["company_page", "pricing_page", "news", "docs", "other"],
+    "expected_facts": [
+      "Zoom is a dedicated video conferencing platform with meetings, webinars, and phone",
+      "Google Meet is bundled with Google Workspace and integrates with Calendar and Gmail",
+      "Both support large meetings, recording, and live captions",
+      "Zoom emphasizes reliability and a broad meeting feature set",
+      "Google Meet emphasizes tight Workspace integration and browser-first access"
+    ],
+    "notes": "Migrated from company_pairs.json; standalone vs suite-bundled conferencing"
   }
 ]

@@ -25,6 +25,14 @@ class Settings(BaseSettings):
 
     research_mode: str = "mock"
 
+    # Step 1 — symmetric research + full-page extraction
+    extract_top_n: int = 3  # top-N ranked URLs per (track, company) sent to TavilyExtract
+    extract_max_chars: int = 6000  # cap merged full-page content per result
+
+    # Step 4 Part A — LLM reliability/cost guards
+    groq_max_payload_chars: int = 16000  # est. prompt size above this -> skip Groq (avoids 413), go straight to Gemini
+    max_context_chars: int = 50000  # safety cap on assembled two-sided context; trims lowest-cred evidence first
+
     # Phase 2 — grounding eval + tracing
     judge_model: str = "gemini-2.5-pro"  # stronger tier than gemini_model (flash) to reduce self-eval bias
     eval_max_concurrency: int = 3

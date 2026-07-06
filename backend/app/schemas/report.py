@@ -12,6 +12,7 @@ class Source(BaseModel):
     credibility_score: float = Field(alias="credibilityScore")
     retrieved_at: str | None = None
     snippet: str | None = None
+    company: str | None = None
 
 
 class EvidenceItem(BaseModel):
@@ -24,6 +25,27 @@ class EvidenceItem(BaseModel):
     evidence_type: str | None = None
     url: str | None = None
     raw_text: str | None = None
+    company: str | None = None
+
+
+class FeatureComparisonRow(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, serialize_by_alias=True)
+
+    dimension: str
+    our_value: str = Field(alias="ourValue")
+    competitor_value: str = Field(alias="competitorValue")
+    our_source_ids: list[str] = Field(default_factory=list, alias="ourSourceIds")
+    competitor_source_ids: list[str] = Field(default_factory=list, alias="competitorSourceIds")
+    advantage: str  # our | competitor | parity | unclear
+
+
+class ComparisonMatrix(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, serialize_by_alias=True)
+
+    rows: list[FeatureComparisonRow]
+    pricing_comparison: str = Field(alias="pricingComparison")
+    positioning_gap: str = Field(alias="positioningGap")
+    summary: str
 
 
 class VerifiedClaim(BaseModel):
@@ -55,6 +77,7 @@ class CompetitorReport(BaseModel):
     strengths: list[str]
     weaknesses: list[str]
     sales_battlecard: SalesBattlecard = Field(alias="salesBattlecard")
+    comparison_matrix: "ComparisonMatrix | None" = Field(default=None, alias="comparisonMatrix")
     evidence: list[EvidenceItem]
     sources: list[Source]
     confidence_score: float = Field(alias="confidenceScore", ge=0, le=100)

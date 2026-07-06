@@ -88,3 +88,37 @@ async def test_parallel_tracks_append_without_loss_or_duplication():
     assert len(state["sources"]) == 4
     assert len(state["evidence"]) == 4
     assert len(state["sources"]) == len({s.id for s in state["sources"]})
+
+
+async def test_comparison_agent_node_populates_matrix():
+    request = ResearchRequest(**_BASE_REQUEST, report_type=ReportType.QUICK_BRIEF)
+    state = await run_research_graph(request)
+
+    matrix = state["comparison_matrix"]
+    assert matrix is not None
+    assert len(matrix.rows) >= 1
+    # matrix attached to final report on the wire.
+    assert state["final_report"].comparison_matrix is not None
+
+
+async def test_comparison_agent_runs_between_fact_checker_and_report():
+    from app.graph.constants import PROGRESS_STEP_LABELS
+
+    fc = PROGRESS_STEP_LABELS.index("fact_checker_stub")
+    cmp_ = PROGRESS_STEP_LABELS.index("comparison_agent")
+    rpt = PROGRESS_STEP_LABELS.index("report_generator")
+    assert fc < cmp_ < rpt
+
+    request = ResearchRequest(**_BASE_REQUEST, report_type=ReportType.QUICK_BRIEF)
+    state = await run_research_graph(request)
+    names = [e.name for e in sorted(state["progress_events"], key=lambda e: e.step)]
+    assert names.index("fact_checker_stub") < names.index("comparison_agent") < names.index("report_generator")
+
+
+async def test_feature_comparison_from_matrix_in_mock_report():
+    request = ResearchRequest(**_BASE_REQUEST, report_type=ReportType.QUICK_BRIEF)
+    state = await run_research_graph(request)
+    report = state["final_report"]
+    # mock report's featureComparison stays its own list; matrix is attached separately.
+    assert report.comparison_matrix is not None
+    assert len(report.comparison_matrix.rows) >= 1
