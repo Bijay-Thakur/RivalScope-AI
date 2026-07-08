@@ -23,22 +23,22 @@
 
 ```mermaid
 flowchart TB
-  subgraph client ["Frontend — Next.js 15"]
+  subgraph client ["Frontend - Next.js 15"]
     UI[App Router pages]
     CTX[RunContext SSE client]
     API_LIB[lib/api.ts]
     UI --> CTX --> API_LIB
   end
 
-  subgraph api ["Backend — FastAPI"]
-    R[/api/research/stream SSE/]
-    P[/api/research POST/]
-    RUNS[/api/runs/]
-    EVAL[/api/evaluations/]
-    CFG[/api/config/]
+  subgraph api ["Backend - FastAPI"]
+    R[GET /api/research/stream]
+    P[POST /api/research]
+    RUNS[GET /api/runs]
+    EVAL_API[POST /api/evaluations/run]
+    CFG[GET /api/config]
   end
 
-  subgraph graph ["LangGraph workflow"]
+  subgraph pipeline ["LangGraph workflow"]
     N1[normalize_input]
     N2[create_research_plan]
     T1[company_profile_track]
@@ -49,44 +49,65 @@ flowchart TB
     CA[comparison_agent]
     RG[report_generator]
     N1 --> N2
-    N2 --> T1 & T2 & T3 & T4
-    T1 & T2 & T3 & T4 --> FC --> CA --> RG
+    N2 --> T1
+    N2 --> T2
+    N2 --> T3
+    N2 --> T4
+    T1 --> FC
+    T2 --> FC
+    T3 --> FC
+    T4 --> FC
+    FC --> CA --> RG
   end
 
   subgraph services ["Services layer"]
-    SEARCH[Tavily search + extract]
+    SEARCH[Tavily search and extract]
     EVID[evidence builder]
-    LLM[Groq / Gemini routing]
+    LLM[Groq and Gemini routing]
     FC_SVC[fact checker]
     CMP[comparison agent]
     RPT[report generator]
   end
 
-  subgraph data ["Persistence & observability"]
-    SQLITE[(SQLite runs + traces)]
+  subgraph data ["Persistence and observability"]
+    SQLITE[(SQLite runs and traces)]
     TBUF[trace_buffer]
     LS[LangSmith optional]
     JSONL[research_runs.jsonl]
   end
 
-  subgraph eval ["Evaluation harness"]
+  subgraph eval_harness ["Evaluation harness"]
     DS[benchmark_tasks.json]
     SCORERS[structural scorers]
     JUDGE[LLM judge full mode]
     OUT[eval_results artifacts]
   end
 
-  API_LIB --> R & P & RUNS & EVAL & CFG
-  R & P --> graph
-  T1 & T2 & T3 & T4 --> SEARCH --> EVID
+  API_LIB --> R
+  API_LIB --> P
+  API_LIB --> RUNS
+  API_LIB --> EVAL_API
+  API_LIB --> CFG
+
+  R --> N1
+  P --> N1
+
+  T1 --> SEARCH
+  T2 --> SEARCH
+  T3 --> SEARCH
+  T4 --> SEARCH
+  SEARCH --> EVID
+
   FC --> FC_SVC --> LLM
   CA --> CMP --> LLM
   RG --> RPT --> LLM
-  graph --> TBUF --> SQLITE
-  graph -.-> LS
-  graph --> JSONL
-  EVAL --> DS --> graph
-  graph --> SCORERS --> OUT
+
+  RG --> TBUF --> SQLITE
+  RG -.-> LS
+  RG --> JSONL
+
+  EVAL_API --> DS --> N1
+  RG --> SCORERS --> OUT
   SCORERS --> JUDGE --> OUT
 ```
 
