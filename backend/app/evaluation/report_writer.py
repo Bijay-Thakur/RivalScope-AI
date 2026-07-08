@@ -112,10 +112,30 @@ def _write_markdown_summary(result: ExperimentResult, output_path: Path) -> Path
         f"- **Research mode:** {result.research_mode}",
         f"- **Eval mode:** {result.eval_mode}",
         f"- **Judge model:** {result.judge_model or 'n/a (structural mode)'}",
+        f"- **LangSmith tracing:** {'on' if result.langsmith_tracing else 'off'}",
+        f"- **LangSmith project:** {result.langsmith_project or 'n/a'}",
         f"- **Total tasks:** {result.total_tasks}",
         f"- **Average score:** {result.average_score:.4f}",
         f"- **Average latency (s):** {result.average_latency_seconds:.2f}",
         f"- **Average source count:** {result.average_source_count:.2f}",
+        "",
+        "## Observability",
+        "",
+        "When LangSmith tracing is enabled (`LANGSMITH_TRACING=true` in `backend/.env`), "
+        "each benchmark task appears as a trace in the LangSmith project above. "
+        "Open [smith.langchain.com](https://smith.langchain.com) → **Traces** and filter by "
+        f"project `{result.langsmith_project or 'rivalscope-ai'}`.",
+        "",
+        "Trace hierarchy per task:",
+        "",
+        "- `evaluation_experiment` — full benchmark run",
+        "- `benchmark_task` — single competitor pair",
+        "- `research_graph` — LangGraph workflow",
+        "- Graph nodes: `normalize_input`, `create_research_plan`, `company_profile_track`, "
+        "`product_track`, `pricing_track`, `news_track`, `fact_checker_stub`, "
+        "`comparison_agent`, `report_generator`",
+        "- Tools: `search_web`, `extract_urls` (real mode)",
+        "- LLM spans: `fact_checker_llm`, `comparison_agent_llm`, `report_generator_llm`",
         "",
         "## Headline Metrics",
         "",

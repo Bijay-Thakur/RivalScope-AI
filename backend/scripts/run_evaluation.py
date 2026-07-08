@@ -74,6 +74,17 @@ def _parse_args() -> argparse.Namespace:
 def _print_mode_notice() -> None:
     from app.core.config import settings
 
+    if settings.langsmith_tracing:
+        print(
+            f"[INFO] LangSmith tracing ON — project={settings.langsmith_project!r}. "
+            "Traces will appear at https://smith.langchain.com"
+        )
+    else:
+        print(
+            "[INFO] LangSmith tracing OFF — set LANGSMITH_TRACING=true in backend/.env "
+            "to export traces."
+        )
+
     if settings.is_real_research_enabled:
         print(
             "[NOTICE] RESEARCH_MODE=real — this evaluation will consume "
@@ -119,6 +130,9 @@ def main() -> None:
     print(f"  Average latency (s): {result.average_latency_seconds:.2f}")
     print(f"  Research mode      : {result.research_mode}")
     print(f"  Model provider     : {result.model_provider}")
+    print(f"  LangSmith tracing  : {'on' if result.langsmith_tracing else 'off'}")
+    if result.langsmith_project:
+        print(f"  LangSmith project  : {result.langsmith_project}")
     print(f"  Two-sidedness      : {_pct(result.avg_comparison_two_sidedness)}")
     print(f"  Cmp citation valid : {_pct(result.avg_comparison_citation_validity)}")
     print(f"  Grounding rate     : {_pct(result.avg_grounding_rate)}")

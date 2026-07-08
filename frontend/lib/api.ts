@@ -140,6 +140,8 @@ export interface EvaluationResult {
   research_mode: string;
   eval_mode: string;
   judge_model?: string | null;
+  langsmith_tracing?: boolean;
+  langsmith_project?: string | null;
   total_tasks: number;
   average_score: number;
   average_latency_seconds: number;

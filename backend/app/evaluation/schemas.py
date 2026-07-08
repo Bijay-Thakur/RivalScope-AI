@@ -64,6 +64,8 @@ class ExperimentResult(BaseModel):
     research_mode: str
     eval_mode: str = "structural"
     judge_model: str | None = None
+    langsmith_tracing: bool = False
+    langsmith_project: str | None = None
     total_tasks: int
     average_score: float
     average_latency_seconds: float

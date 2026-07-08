@@ -13,6 +13,7 @@ from app.evaluation.schemas import (
 )
 from app.evaluation.scorers import grounding_metrics, score_report
 from app.graph.workflow import run_research_graph
+from app.observability.tracing import traceable
 from app.schemas.report import CompetitorReport
 from app.schemas.research import ReportType, ResearchRequest
 
@@ -137,9 +138,11 @@ async def _comparison_grounding(
     return grounded / len(judged)
 
 
+@traceable(run_type="chain", name="benchmark_task")
 async def _run_single_task(
     task: BenchmarkTask,
     *,
+    experiment_name: str,
     mode: str,
     judge_model: str,
     judge_concurrency: int,
@@ -203,6 +206,7 @@ def _avg(values: list[float | None]) -> float | None:
     return sum(present) / len(present)
 
 
+@traceable(run_type="chain", name="evaluation_experiment")
 async def run_evaluation(
     experiment_name: str = "phase4_baseline",
     max_tasks: int | None = None,
@@ -222,7 +226,11 @@ async def run_evaluation(
     async def _bounded(task: BenchmarkTask) -> TaskScore:
         async with semaphore:
             return await _run_single_task(
-                task, mode=mode, judge_model=judge_model, judge_concurrency=judge_concurrency
+                task,
+                experiment_name=experiment_name,
+                mode=mode,
+                judge_model=judge_model,
+                judge_concurrency=judge_concurrency,
             )
 
     task_scores = list(await asyncio.gather(*(_bounded(t) for t in tasks)))
@@ -235,6 +243,8 @@ async def run_evaluation(
             research_mode=settings.research_mode,
             eval_mode=mode,
             judge_model=judge_model if mode == FULL else None,
+            langsmith_tracing=settings.langsmith_tracing,
+            langsmith_project=settings.langsmith_project if settings.langsmith_tracing else None,
             total_tasks=0,
             average_score=0.0,
             average_latency_seconds=0.0,
@@ -248,6 +258,8 @@ async def run_evaluation(
         research_mode=settings.research_mode,
         eval_mode=mode,
         judge_model=judge_model if mode == FULL else None,
+        langsmith_tracing=settings.langsmith_tracing,
+        langsmith_project=settings.langsmith_project if settings.langsmith_tracing else None,
         total_tasks=total_tasks,
         average_score=sum(s.overall_score for s in task_scores) / total_tasks,
         average_latency_seconds=sum(s.latency_seconds for s in task_scores) / total_tasks,

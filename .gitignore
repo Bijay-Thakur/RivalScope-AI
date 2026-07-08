@@ -52,14 +52,19 @@ backend/build/
 
 # logs (keep .gitkeep)
 backend/app/logs/*.log
+backend/app/logs/*.log.*
 backend/app/logs/*.jsonl
+backend/logs/
 
 # local sqlite database
 backend/app/data/
 
-# grounding eval results (keep .gitkeep)
-backend/evals/results/*.json
-!backend/evals/results/.gitkeep
+# eval run artifacts (keep .gitkeep)
+backend/eval_results/*
+!backend/eval_results/.gitkeep
 
-# IDE
+# npm cache (local installs)
+.npm-cache/
+
+# IDE / tooling
 .qodo/

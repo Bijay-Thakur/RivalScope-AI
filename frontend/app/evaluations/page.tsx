@@ -114,6 +114,9 @@ export default function EvaluationsPage() {
             <p className="mt-4 text-xs text-[var(--muted-2)]">
               Latest: {evals[0].experimentName} · {evals[0].totalTasks} tasks · score{" "}
               {evals[0].averageScore?.toFixed(1)}
+              {latest?.langsmith_tracing && latest.langsmith_project ? (
+                <> · LangSmith: {latest.langsmith_project}</>
+              ) : null}
             </p>
           )}
         </Card>

@@ -37,9 +37,20 @@ def health_check() -> dict[str, str]:
 if __name__ == "__main__":
     import uvicorn
 
+    # Exclude runtime artifacts from --reload so log/DB writes during a long
+    # research stream do not restart the server mid-request.
+    reload_excludes = [
+        "**/logs/**",
+        "**/data/**",
+        "**/eval_results/**",
+        "**/__pycache__/**",
+        "**/.pytest_cache/**",
+    ]
+
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
         port=8000,
         reload=settings.app_env == "development",
+        reload_excludes=reload_excludes,
     )

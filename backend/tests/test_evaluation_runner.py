@@ -39,6 +39,9 @@ async def test_run_evaluation_works_in_mock_mode_with_max_tasks():
     assert result.average_score == task_score.overall_score
     assert result.average_latency_seconds >= 0.0
     assert result.average_source_count == float(task_score.source_count)
+    assert result.langsmith_tracing == settings.langsmith_tracing
+    if settings.langsmith_tracing:
+        assert result.langsmith_project == settings.langsmith_project
 
 
 async def test_structural_mode_makes_zero_judge_calls(monkeypatch):

@@ -52,6 +52,8 @@ def test_unified_md_contains_headline_metrics(tmp_path):
 
     md = open(paths["markdown"], encoding="utf-8").read()
     assert "Headline Metrics" in md
+    assert "Observability" in md
+    assert "LangSmith tracing" in md
     assert "Comparison two-sidedness" in md
     assert "Hallucination rate" in md
     assert "Claim grounding rate" in md

@@ -124,8 +124,12 @@ async def _research_stream_events(
 
             if root_run_id is None and etype == "on_chain_start":
                 root_run_id = ev.get("run_id")
-            if etype == "on_chain_end" and ev.get("run_id") == root_run_id:
-                final_state = (ev.get("data") or {}).get("output")
+            if etype == "on_chain_end":
+                output = (ev.get("data") or {}).get("output")
+                if isinstance(output, dict) and output.get("final_report") is not None:
+                    final_state = output
+                elif ev.get("run_id") == root_run_id:
+                    final_state = output
 
             if name in _STEP_INDEX:
                 step = _STEP_INDEX[name]

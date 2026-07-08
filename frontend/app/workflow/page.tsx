@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { Card, PageHeader, PrimaryButton, StatCard } from "@/components/ui/primitives";
+import { WorkflowGraph } from "@/components/WorkflowGraph";
 import { fetchRunTraces, type TraceEvent } from "@/lib/api";
 import { estimateCost, useRun } from "@/lib/runContext";
 import { WORKFLOW_STEPS } from "@/lib/steps";
@@ -153,10 +154,10 @@ function WorkflowContent() {
           </div>
 
           {/* Workflow graph */}
-          <Card className="p-6">
+          <Card className="overflow-hidden p-6">
             <h2 className="text-lg font-bold tracking-tight">Workflow Graph</h2>
             <p className="mt-1 text-sm text-[var(--muted)]">
-              The graph, made visible so reviewers understand the architecture.
+              Live LangGraph topology — active nodes glow as SSE events arrive.
             </p>
             <WorkflowGraph completedSteps={completedSteps} workingSteps={workingSteps} />
           </Card>
@@ -220,75 +221,6 @@ function StepIcon({ step, done, working }: { step: number; done: boolean; workin
       {step}
     </span>
   );
-}
-
-function WorkflowGraph({
-  completedSteps,
-  workingSteps,
-}: {
-  completedSteps: number[];
-  workingSteps: number[];
-}) {
-  const nodeState = (step: number) =>
-    completedSteps.includes(step) ? "done" : workingSteps.includes(step) ? "working" : "idle";
-
-  return (
-    <div className="mt-5 flex items-center justify-between gap-2 overflow-x-auto rs-scroll pb-2">
-      <GraphNode label="Planner" tone="gold" state={nodeState(2)} />
-      <Connector />
-      <div className="flex flex-col gap-2">
-        <GraphNode label="Company" tone="blue" state={nodeState(3)} compact />
-        <GraphNode label="Product" tone="green" state={nodeState(4)} compact />
-        <GraphNode label="Pricing" tone="yellow" state={nodeState(5)} compact />
-        <GraphNode label="News" tone="purple" state={nodeState(6)} compact />
-      </div>
-      <Connector />
-      <GraphNode label="Verifier" tone="purple" state={nodeState(7)} />
-      <Connector />
-      <GraphNode label="Report" tone="gold" state={nodeState(9)} />
-    </div>
-  );
-}
-
-const TONE_BG: Record<string, string> = {
-  gold: "#faedcf",
-  blue: "#e3ebfd",
-  green: "#dcf5e9",
-  yellow: "#faf0cf",
-  purple: "#ede4fb",
-};
-
-function GraphNode({
-  label,
-  tone,
-  state,
-  compact = false,
-}: {
-  label: string;
-  tone: string;
-  state: "idle" | "working" | "done";
-  compact?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-lg border text-center text-xs font-semibold transition-all ${
-        compact ? "px-3 py-1.5" : "px-4 py-3"
-      } ${
-        state === "working"
-          ? "border-[var(--accent-strong)] ring-2 ring-[var(--accent)]/50"
-          : state === "done"
-            ? "border-[var(--border-strong)]"
-            : "border-[var(--border)] opacity-60"
-      }`}
-      style={{ backgroundColor: TONE_BG[tone] ?? "#eee" }}
-    >
-      {label}
-    </div>
-  );
-}
-
-function Connector() {
-  return <span className="h-px w-6 shrink-0 bg-[var(--border-strong)]" aria-hidden="true" />;
 }
 
 function StreamingLog({

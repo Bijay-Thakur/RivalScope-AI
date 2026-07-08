@@ -1,3 +1,0 @@
-task_id,overall_score,task_completion,section_coverage,source_coverage,citation_integrity,evidence_count,source_count,latency_seconds,warnings_count,failure_notes
-task-001-clickup-notion,0.9600,1.0000,1.0000,0.8000,1.0000,31,31,28.73,0,Expected source type 'company_page' not found in report sources
-task-002-asana-monday,0.9400,1.0000,1.0000,1.0000,1.0000,30,30,65.85,0,

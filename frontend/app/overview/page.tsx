@@ -11,10 +11,9 @@ const PIPELINE = [
 const ARCH_NODES = [
   "Planner",
   "Parallel Tracks",
-  "Evidence Store",
   "Verifier",
-  "Synthesizer",
-  "Cited UI",
+  "Compare",
+  "Report",
 ];
 
 export default function OverviewPage() {

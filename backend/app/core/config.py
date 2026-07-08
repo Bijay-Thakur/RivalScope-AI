@@ -12,7 +12,7 @@ class Settings(BaseSettings):
 
     app_env: str = "development"
     log_level: str = "INFO"
-    cors_origins: str = "http://localhost:3000"
+    cors_origins: str = "http://localhost:3000,http://localhost:3001"
 
     groq_api_key: str | None = None
     google_api_key: str | None = None

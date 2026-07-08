@@ -12,6 +12,7 @@ from app.core.logging import get_logger, write_run_log
 from app.db import repository
 from app.observability import trace_buffer
 from app.observability.metrics import compute_run_metrics
+from app.observability.tracing import traceable
 from app.schemas.research import ResearchRequest
 
 logger = get_logger(__name__)
@@ -133,6 +134,7 @@ def persist_run(
         logger.exception("Failed to persist run %s", run_id)
 
 
+@traceable(run_type="chain", name="research_graph")
 async def run_research_graph(request: ResearchRequest) -> RivalScopeState:
     graph = build_research_graph()
     initial_state = initial_state_for(request)
