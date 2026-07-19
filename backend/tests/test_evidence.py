@@ -1,4 +1,26 @@
-from app.services.evidence import build_evidence_from_results, source_from_search_result
+from app.services.evidence import (
+    _make_claim,
+    build_evidence_from_results,
+    source_from_search_result,
+)
+
+
+def test_make_claim_prefers_body_sentence_over_title():
+    claim = _make_claim(
+        {
+            "title": "ClickUp | Best Software 2026 SEO Title",
+            "content": (
+                "ClickUp helps teams manage projects with tasks, docs, and goals in one workspace. "
+                "Pricing starts at a free plan."
+            ),
+        }
+    )
+    assert "SEO Title" not in claim
+    assert "ClickUp helps teams" in claim
+
+
+def test_make_claim_falls_back_to_title_when_body_short():
+    assert _make_claim({"title": "Only Title", "content": "short"}) == "Only Title"
 
 
 def test_source_from_search_result_tags_company():

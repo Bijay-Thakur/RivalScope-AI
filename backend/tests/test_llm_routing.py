@@ -23,31 +23,57 @@ def test_big_payload_skips_groq(monkeypatch):
     monkeypatch.setattr(settings, "groq_max_payload_chars", 100)
     monkeypatch.setattr(settings, "google_api_key", "fake")
     monkeypatch.setattr(settings, "gemini_api_key", None)
+    monkeypatch.setattr(settings, "groq_api_key", "fake")
 
-    called = {"primary": False}
+    called = {"groq": False}
 
-    def _primary(temp=0.1):
-        called["primary"] = True
-        return _FakeLLM("groq")
+    def _get_llm(provider, temp=0.1):
+        if provider == "groq":
+            called["groq"] = True
+        return _FakeLLM(provider)
 
-    monkeypatch.setattr(llm, "get_primary_llm", _primary)
-    monkeypatch.setattr(llm, "get_fallback_llm", lambda temp=0.1: _FakeLLM("gemini"))
+    monkeypatch.setattr(llm, "get_llm", _get_llm)
 
     result = llm.invoke_with_fallback(_msgs(500))
     assert result == "OK:gemini"
-    assert called["primary"] is False  # Groq never touched -> no wasted 413
+    assert called["groq"] is False  # Groq never touched -> no wasted 413
 
 
 def test_small_payload_uses_groq_first(monkeypatch):
     monkeypatch.setattr(settings, "llm_provider", "groq")
     monkeypatch.setattr(settings, "groq_max_payload_chars", 10000)
     monkeypatch.setattr(settings, "google_api_key", "fake")
+    monkeypatch.setattr(settings, "groq_api_key", "fake")
 
-    monkeypatch.setattr(llm, "get_primary_llm", lambda temp=0.1: _FakeLLM("groq"))
-    monkeypatch.setattr(llm, "get_fallback_llm", lambda temp=0.1: _FakeLLM("gemini"))
+    monkeypatch.setattr(llm, "get_llm", lambda provider, temp=0.1: _FakeLLM(provider))
 
     result = llm.invoke_with_fallback(_msgs(50))
     assert result == "OK:groq"
+
+
+def test_preferred_provider_gemini_for_report(monkeypatch):
+    monkeypatch.setattr(settings, "google_api_key", "fake")
+    monkeypatch.setattr(settings, "groq_api_key", "fake")
+    monkeypatch.setattr(settings, "groq_max_payload_chars", 100_000)
+    monkeypatch.setattr(llm, "get_llm", lambda provider, temp=0.1: _FakeLLM(provider))
+
+    result = llm.invoke_with_fallback(_msgs(50), preferred_provider="gemini")
+    assert result == "OK:gemini"
+
+
+def test_resolve_step_provider_mock_prefers_groq(monkeypatch):
+    monkeypatch.setattr(settings, "research_mode", "mock")
+    monkeypatch.setattr(settings, "groq_api_key", "fake")
+    monkeypatch.setattr(settings, "google_api_key", "fake")
+    assert llm.resolve_step_provider("gemini") == "groq"
+
+
+def test_resolve_step_provider_real_honors_gemini(monkeypatch):
+    monkeypatch.setattr(settings, "research_mode", "real")
+    monkeypatch.setattr(settings, "groq_api_key", "fake")
+    monkeypatch.setattr(settings, "google_api_key", "fake")
+    assert llm.resolve_step_provider("gemini") == "gemini"
+    assert llm.resolve_step_provider("groq") == "groq"
 
 
 def _src(id_, cred):

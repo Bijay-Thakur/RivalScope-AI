@@ -93,6 +93,12 @@ def _print_mode_notice() -> None:
     else:
         print("[INFO] RESEARCH_MODE=mock — no external API keys required.")
 
+    from app.evaluation.judge import judge_model_candidates
+
+    print(f"[INFO] Judge model chain: {' -> '.join(judge_model_candidates())}")
+    if settings.judge_use_groq:
+        print("[INFO] JUDGE_USE_GROQ=true — Gemini judge skipped; using Groq for grounding eval.")
+
 
 async def _run(args: argparse.Namespace):
     from app.evaluation.report_writer import write_experiment_results
@@ -137,6 +143,16 @@ def main() -> None:
     print(f"  Cmp citation valid : {_pct(result.avg_comparison_citation_validity)}")
     print(f"  Grounding rate     : {_pct(result.avg_grounding_rate)}")
     print(f"  Hallucination rate : {_pct(result.avg_hallucination_rate)}")
+    if result.eval_mode == "full":
+        print(f"  n_claims_total     : {result.n_claims_total}")
+        print(f"  n_judged_ok        : {result.n_judged_ok}")
+        print(f"  n_judge_errors     : {result.n_judge_errors}")
+        print(f"  n_citation_invalid : {result.n_citation_invalid}")
+        if result.grounding_unreliable:
+            print(
+                "\n  *** GROUNDING UNRELIABLE: judge produced "
+                f"{result.n_judged_ok} valid verdicts / {result.n_judge_errors} errors ***\n"
+            )
     print("\n  Output files:")
     print(f"    JSON     : {output_paths['json']}")
     print(f"    CSV      : {output_paths['csv']}")

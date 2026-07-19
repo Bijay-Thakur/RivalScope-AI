@@ -68,6 +68,9 @@ export interface AppConfig {
   isRealResearchEnabled: boolean;
   llmProvider: string;
   llmFallback: string;
+  factCheckerProvider?: string;
+  comparisonProvider?: string;
+  reportProvider?: string;
   groqModel: string;
   geminiModel: string;
   judgeModel: string;
@@ -170,11 +173,13 @@ export interface EvaluationRecord {
 }
 
 export function buildResearchStreamUrl(input: ResearchInput): string {
+  const features = (input.compareFeatures ?? []).join(",");
   const query = [
     `our_company=${encodeURIComponent(input.ourCompany)}`,
     `competitor=${encodeURIComponent(input.competitor)}`,
-    `market=${encodeURIComponent(input.market)}`,
+    `market=${encodeURIComponent(input.market ?? "")}`,
     `report_type=${encodeURIComponent(BACKEND_REPORT_TYPE[input.reportType])}`,
+    `compare_features=${encodeURIComponent(features)}`,
   ].join("&");
 
   return `${API_BASE_URL}/api/research/stream?${query}`;

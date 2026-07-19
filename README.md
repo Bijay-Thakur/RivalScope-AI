@@ -12,7 +12,7 @@
 | **Approach** | Fixed LangGraph DAG with parallel research tracks, deterministic scorers, and LLM-as-judge grounding evals. |
 | **Stack** | Next.js 15 · FastAPI · LangGraph · LangChain · Tavily · Groq · Gemini |
 | **Benchmark** | 22 curated competitor-pair tasks across 3 report types |
-| **Tests** | 90 backend pytest cases (mock mode, no API keys) |
+| **Tests** | 129 backend pytest cases (mock mode, no API keys) |
 | **Demo** | Mock mode works offline; real mode uses live Tavily + LLM APIs |
 
 **Recruiter demo path (5 min):** `/overview` → `/` start a run → `/workflow` watch the animated graph + tool traces → `/report` → `/evidence` → `/evaluations`.
@@ -116,6 +116,7 @@ flowchart TB
 - **Orchestrated pipeline, not autonomous agents** — nine fixed LangGraph nodes; no dynamic tool-calling planner.
 - **Symmetric research** — both companies searched across four parallel tracks (company, product, pricing, news).
 - **Source-first outputs** — `Source` + `EvidenceItem` models; citations required in comparison matrix and report.
+- **Application-enforced grounding** — source-ID allowlists, claim-status filters, comparison business rules, post-report grounding, and deterministic confidence (see [`docs/ai-pipeline-contract.md`](docs/ai-pipeline-contract.md)).
 - **Observable by default** — in-app trace buffer + SSE; LangSmith is an optional hosted layer.
 - **Eval-driven quality** — structural metrics run free offline; full mode adds LLM-judge grounding.
 

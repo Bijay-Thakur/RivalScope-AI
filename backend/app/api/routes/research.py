@@ -205,20 +205,29 @@ async def _research_stream_events(
 async def stream_research(
     our_company: str = Query(...),
     competitor: str = Query(...),
-    market: str = Query(...),
     report_type: ReportType = Query(...),
+    market: str = Query(""),
+    compare_features: str = Query(
+        "",
+        description="Comma-separated compare feature ids (pricing,core_features,...)",
+    ),
 ) -> StreamingResponse:
+    from app.services.compare_features import parse_compare_features_param
+
+    features = parse_compare_features_param(compare_features)
     logger.info(
-        "Research stream: %s vs %s (%s)",
+        "Research stream: %s vs %s (features=%s market=%s)",
         our_company,
         competitor,
-        market,
+        features or "(none)",
+        market or "(derived)",
     )
     request = ResearchRequest(
         our_company=our_company,
         competitor=competitor,
         market=market,
         report_type=report_type,
+        compare_features=features,
     )
     return StreamingResponse(
         _research_stream_events(request),

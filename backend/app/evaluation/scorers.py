@@ -270,17 +270,57 @@ def advantage_honesty_notes(matrix: ComparisonMatrix | None) -> list[str]:
 # Grounding metrics (pure aggregation over judge verdicts — no API)
 # ---------------------------------------------------------------------------
 
-def grounding_metrics(verdicts: list[ClaimVerdict]) -> dict[str, float]:
-    total = len(verdicts)
-    if total == 0:
-        return {"grounding_rate": 0.0, "hallucination_rate": 0.0, "citation_validity": 0.0}
-    supported = sum(1 for v in verdicts if v.verdict == Verdict.SUPPORTED)
-    contradicted = sum(1 for v in verdicts if v.verdict == Verdict.CONTRADICTED)
-    invalid = sum(1 for v in verdicts if v.verdict == Verdict.CITATION_INVALID)
+# Verdicts that count as a successful judge call (real content judgment).
+_JUDGED_OK = {
+    Verdict.SUPPORTED,
+    Verdict.PARTIAL,
+    Verdict.UNSUPPORTED,
+    Verdict.CONTRADICTED,
+}
+
+
+def grounding_metrics(verdicts: list[ClaimVerdict]) -> dict[str, float | int | None]:
+    """Aggregate judge verdicts.
+
+    grounding_rate / hallucination_rate are None when no claim was successfully
+    judged (n_judged_ok==0) — never silently report 0.0 for a failed judge layer.
+    Rates are over n_judged_ok only (ERROR / CITATION_INVALID excluded from denom).
+    """
+    n_claims_total = len(verdicts)
+    n_judge_errors = sum(1 for v in verdicts if v.verdict == Verdict.ERROR)
+    n_citation_invalid = sum(1 for v in verdicts if v.verdict == Verdict.CITATION_INVALID)
+    judged = [v for v in verdicts if v.verdict in _JUDGED_OK]
+    n_judged_ok = len(judged)
+
+    if n_judged_ok == 0:
+        return {
+            "grounding_rate": None,
+            "hallucination_rate": None,
+            "citation_validity": (
+                (n_claims_total - n_citation_invalid) / n_claims_total
+                if n_claims_total
+                else None
+            ),
+            "n_claims_total": n_claims_total,
+            "n_judged_ok": 0,
+            "n_judge_errors": n_judge_errors,
+            "n_citation_invalid": n_citation_invalid,
+        }
+
+    # Grounded = supported OR partial (partial = source partly entails claim).
+    # Aligns with comparison_grounding; unsupported/contradicted are not grounded.
+    grounded = sum(
+        1 for v in judged if v.verdict in {Verdict.SUPPORTED, Verdict.PARTIAL}
+    )
+    contradicted = sum(1 for v in judged if v.verdict == Verdict.CONTRADICTED)
     return {
-        "grounding_rate": supported / total,
-        "hallucination_rate": contradicted / total,
-        "citation_validity": (total - invalid) / total,
+        "grounding_rate": grounded / n_judged_ok,
+        "hallucination_rate": contradicted / n_judged_ok,
+        "citation_validity": (n_claims_total - n_citation_invalid) / n_claims_total,
+        "n_claims_total": n_claims_total,
+        "n_judged_ok": n_judged_ok,
+        "n_judge_errors": n_judge_errors,
+        "n_citation_invalid": n_citation_invalid,
     }
 
 

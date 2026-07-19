@@ -3,6 +3,7 @@
 import json
 
 import app.services.comparison_agent as ca
+import app.services.structured_output as so
 from app.schemas.report import EvidenceItem, Source
 from app.schemas.research import ReportType, ResearchRequest
 from app.services.mock_data import build_mock_comparison_matrix
@@ -62,7 +63,7 @@ def _valid_json() -> str:
 
 
 def test_valid_llm_output_parsed_two_sided(monkeypatch):
-    monkeypatch.setattr(ca, "invoke_with_fallback", lambda messages, **kwargs: _valid_json())
+    monkeypatch.setattr(so, "invoke_with_fallback", lambda messages, **kwargs: _valid_json())
 
     matrix = ca.build_comparison_matrix(_REQUEST, _SOURCES, _EVIDENCE, [])
 
@@ -76,7 +77,9 @@ def test_valid_llm_output_parsed_two_sided(monkeypatch):
 
 
 def test_fallback_matrix_on_bad_json(monkeypatch):
-    monkeypatch.setattr(ca, "invoke_with_fallback", lambda messages, **kwargs: "not json at all {{{")
+    monkeypatch.setattr(
+        so, "invoke_with_fallback", lambda messages, **kwargs: "not json at all {{{"
+    )
 
     matrix = ca.build_comparison_matrix(_REQUEST, _SOURCES, _EVIDENCE, [])
 
@@ -86,8 +89,11 @@ def test_fallback_matrix_on_bad_json(monkeypatch):
 
 def test_fallback_matrix_on_empty_rows(monkeypatch):
     monkeypatch.setattr(
-        ca, "invoke_with_fallback",
-        lambda messages, **kwargs: json.dumps({"rows": [], "pricingComparison": "", "positioningGap": "", "summary": ""}),
+        so,
+        "invoke_with_fallback",
+        lambda messages, **kwargs: json.dumps(
+            {"rows": [], "pricingComparison": "", "positioningGap": "", "summary": ""}
+        ),
     )
 
     matrix = ca.build_comparison_matrix(_REQUEST, _SOURCES, _EVIDENCE, [])

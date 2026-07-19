@@ -4,6 +4,7 @@ from uuid import uuid4
 from app.core.config import settings
 from app.core.logging import get_logger, log_run_event
 from app.schemas.report import EvidenceItem, Source
+from app.services.content_sanitize import sanitize_retrieved_text
 
 logger = get_logger(__name__)
 
@@ -45,16 +46,24 @@ def infer_confidence(source_type: str) -> str:
 
 
 def _make_claim(result: dict) -> str:
+    """Prefer an extractive sentence from body text (groundable), not SEO title.
+
+    Title-as-claim was a major driver of ~55% grounding: judge checks whether
+    SOURCE TEXT entails CLAIM; titles often aren't entailed by the excerpt.
+    """
+    content = (result.get("content") or result.get("snippet") or "").strip()
+    if content:
+        for part in content.replace("\n", " ").split(". "):
+            sentence = part.strip().rstrip(".")
+            if 40 <= len(sentence) <= 220 and " " in sentence:
+                return sentence + "."
+        # Long body without clear sentences — still prefer body over title.
+        if len(content) >= 40:
+            return content[:180].rstrip() + ("…" if len(content) > 180 else "")
+
     title = (result.get("title") or "").strip()
     if title:
         return title
-
-    content = (result.get("content") or result.get("snippet") or "").strip()
-    if content:
-        sentence_end = content.find(". ")
-        if 0 < sentence_end < 120:
-            return content[: sentence_end + 1]
-        return content[:120]
 
     return "No claim extracted"
 
@@ -91,14 +100,18 @@ def evidence_from_search_result(
 ) -> EvidenceItem:
     content = result.get("content") or result.get("snippet") or ""
 
+    sanitized = sanitize_retrieved_text(
+        content[: settings.extract_max_chars] if content else None,
+        max_chars=settings.extract_max_chars,
+    )
     return EvidenceItem(
         id=str(uuid4()),
-        claim=_make_claim(result),
+        claim=_make_claim({**result, "content": sanitized.text or content}),
         source_id=source.id,
         confidence=infer_confidence(source.source_type),
         evidence_type=track,
         url=source.url,
-        raw_text=content[: settings.extract_max_chars] if content else None,
+        raw_text=sanitized.text or None,
         company=company,
     )
 

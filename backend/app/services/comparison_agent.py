@@ -12,10 +12,19 @@ from app.schemas.report import (
     VerifiedClaim,
 )
 from app.schemas.research import ResearchRequest
+from app.services.claim_policy import filter_report_input_claims
+from app.services.content_sanitize import sanitize_retrieved_text
 from app.services.context_budget import trim_evidence_to_budget
-from app.services.json_utils import extract_json_from_text, safe_get_message_text
-from app.services.llm import invoke_with_fallback
+from app.services.llm import resolve_step_provider
+from app.services.pipeline_validation import (
+    build_source_allowlists,
+    validate_comparison_matrix,
+)
 from app.services.prompts import COMPARISON_AGENT_SYSTEM_PROMPT
+from app.services.structured_output import (
+    StructuredOutputError,
+    invoke_json_with_repair,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +55,8 @@ def _append_side(lines: list[str], label: str, sources: list[Source], evidence: 
     for item in evidence[:_MAX_EVIDENCE]:
         lines.append(f"- [{item.source_id}] {item.claim}")
         if item.raw_text:
-            lines.append(f"  raw: {item.raw_text[:400]}")
+            sanitized = sanitize_retrieved_text(item.raw_text, max_chars=400)
+            lines.append(f"  raw: {sanitized.text}")
     lines.append("")
 
 
@@ -64,12 +74,22 @@ def _build_context(
     our_src, rival_src, _ = _partition(sources, our, rival)
     our_ev, rival_ev, _ = _partition(evidence, our, rival)
 
+    from app.services.compare_features import feature_labels
+
+    dims = feature_labels(request.compare_features)
     lines = [
         f"our_company: {our}",
         f"competitor: {rival}",
         f"market: {request.market}",
+        f"compare_features: {', '.join(dims) if dims else '(none selected — pick evidence-grounded dims)'}",
         "",
     ]
+    if dims:
+        lines.append(
+            "REQUIRED DIMENSIONS (use these as matrix row dimensions when evidence allows; "
+            "skip only if zero evidence on both sides): " + "; ".join(dims)
+        )
+        lines.append("")
     _append_side(lines, f"OUR COMPANY: {our}", our_src, our_ev)
     _append_side(lines, f"COMPETITOR: {rival}", rival_src, rival_ev)
     return "\n".join(lines)
@@ -152,21 +172,55 @@ def build_comparison_matrix(
     request: ResearchRequest,
     sources: list[Source],
     evidence: list[EvidenceItem],
-    verified_claims: list[VerifiedClaim],  # noqa: ARG001 — reserved; context uses evidence
+    verified_claims: list[VerifiedClaim],
     *,
     run_id: str | None = None,
 ) -> ComparisonMatrix:
+    # Unsupported claims must not drive advantages — use report-safe claims only.
+    usable = filter_report_input_claims(verified_claims)
     log_run_event(
         run_id,
         "comparison_agent_started",
-        {"source_count": len(sources), "evidence_count": len(evidence)},
+        {
+            "source_count": len(sources),
+            "evidence_count": len(evidence),
+            "usable_claim_count": len(usable),
+        },
         logger=logger,
     )
 
     context = _build_context(request, sources, evidence, run_id=run_id)
+    if usable:
+        context += "\n\n=== CHECKED CLAIMS (verified / weakly_supported only) ===\n"
+        for c in usable[:20]:
+            context += f"- [{c.verification_status}] {c.claim}\n"
+
+    allowlists = build_source_allowlists(
+        sources, request.our_company, request.competitor
+    )
 
     try:
-        response = invoke_with_fallback(
+        schema_hint = (
+            '{"rows":[{"dimension":"str","ourValue":"str","competitorValue":"str",'
+            '"ourSourceIds":["src-id"],"competitorSourceIds":["src-id"],'
+            '"advantage":"our|competitor|parity|unclear"}],'
+            '"pricingComparison":"str","positioningGap":"str","summary":"str"}'
+        )
+
+        def _validate(data: dict | list):
+            if not isinstance(data, dict):
+                return None, ["expected object"]
+            try:
+                matrix = _matrix_from_data(data)
+            except Exception as exc:
+                return None, [str(exc)]
+            # Business-rule coercions are applied here; only structural failures
+            # (no usable rows) require LLM repair.
+            matrix, validation = validate_comparison_matrix(matrix, allowlists)
+            errs = [i.message for i in validation.issues if i.code == "no_rows"]
+            return matrix, errs
+
+        matrix = invoke_json_with_repair(
             messages=[
                 {"role": "system", "content": COMPARISON_AGENT_SYSTEM_PROMPT},
                 {
@@ -177,14 +231,36 @@ def build_comparison_matrix(
                     ),
                 },
             ],
+            schema_hint=schema_hint,
+            validate=_validate,
             run_id=run_id,
             call_name="comparison_agent_llm",
+            preferred_provider=resolve_step_provider(settings.comparison_provider),
+            stage="comparison_agent",
+            max_repairs=1,
         )
-        raw = safe_get_message_text(response)
-        data = extract_json_from_text(raw)
-        if not isinstance(data, dict):
-            raise ValueError(f"unexpected JSON type: {type(data).__name__}")
-        matrix = _matrix_from_data(data)
+        # Final soft validation (pad/trim IDs) without failing the pipeline
+        matrix, validation = validate_comparison_matrix(matrix, allowlists)
+        if not validation.ok:
+            logger.warning(
+                "comparison_agent: post-repair coercions %s",
+                [i.code for i in validation.issues],
+            )
+    except StructuredOutputError as exc:
+        logger.warning(
+            "comparison_agent: structured output failed %s — using fallback matrix.",
+            exc.errors,
+        )
+        log_run_event(
+            run_id,
+            "comparison_agent_fallback_used",
+            {"reason": "structured_output_error", "errors": exc.errors[:5]},
+            logger=logger,
+            level=logging.WARNING,
+        )
+        matrix = build_fallback_matrix(request, sources, evidence)
+        matrix, _ = validate_comparison_matrix(matrix, allowlists)
+        return matrix
     except Exception as exc:
         logger.warning(
             "comparison_agent: LLM/parse failed [%s] — using fallback matrix.",
@@ -197,12 +273,14 @@ def build_comparison_matrix(
             logger=logger,
             level=logging.WARNING,
         )
-        return build_fallback_matrix(request, sources, evidence)
+        matrix = build_fallback_matrix(request, sources, evidence)
+        matrix, _ = validate_comparison_matrix(matrix, allowlists)
+        return matrix
 
     log_run_event(
         run_id,
         "comparison_agent_completed",
-        {"row_count": len(matrix.rows), "used_fallback": False},
+        {"row_count": len(matrix.rows), "used_fallback": False, "validation_ok": True},
         logger=logger,
     )
     return matrix

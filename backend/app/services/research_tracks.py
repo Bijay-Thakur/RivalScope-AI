@@ -1,4 +1,5 @@
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from app.core.config import settings
 from app.core.logging import log_run_event
@@ -80,7 +81,7 @@ def _run_company_track(
     warnings: list[str] = []
     failed = 0
 
-    for query in queries:
+    def _one(query: str) -> tuple[str, list[dict] | None, str | None]:
         try:
             results = search_web(
                 query,
@@ -88,16 +89,31 @@ def _run_company_track(
                 run_id=run_id,
                 track=track,
             )
+            return query, results, None
+        except Exception as exc:
+            msg = (
+                f"Search failed for track '{track}' company '{company}' "
+                f"query '{query}' [{type(exc).__name__}]"
+            )
+            return query, None, msg
+
+    # Parallelize queries for this company (typically 2) — biggest cheap latency win.
+    workers = min(4, max(1, len(queries)))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = [pool.submit(_one, q) for q in queries]
+        for fut in as_completed(futures):
+            query, results, err = fut.result()
+            if err:
+                failed += 1
+                logger.warning(err)
+                warnings.append(err)
+                continue
+            assert results is not None
             all_raw.extend(results)
             logger.debug(
                 "Track '%s' company '%s' query returned %d result(s): %s",
                 track, company, len(results), query,
             )
-        except Exception as exc:
-            failed += 1
-            msg = f"Search failed for track '{track}' company '{company}' query '{query}' [{type(exc).__name__}]"
-            logger.warning(msg)
-            warnings.append(msg)
 
     if queries and failed == len(queries):
         msg = (
@@ -131,21 +147,37 @@ def run_research_track(
     track: str,
     queries_by_company: dict[str, list[str]],
     source_type: str | None = None,
-    max_results_per_query: int = 3,
+    max_results_per_query: int | None = None,
     *,
     run_id: str | None = None,
 ) -> dict:
+    if max_results_per_query is None:
+        max_results_per_query = settings.max_results_per_query
+
     all_sources: list[Source] = []
     all_evidence: list[EvidenceItem] = []
     all_warnings: list[str] = []
 
-    for company, queries in queries_by_company.items():
-        result = _run_company_track(
-            track, company, queries, source_type, max_results_per_query, run_id=run_id
-        )
-        all_sources.extend(result["sources"])
-        all_evidence.extend(result["evidence"])
-        all_warnings.extend(result["warnings"])
+    # Both companies in parallel within a track.
+    items = list(queries_by_company.items())
+    with ThreadPoolExecutor(max_workers=min(2, max(1, len(items)))) as pool:
+        futures = [
+            pool.submit(
+                _run_company_track,
+                track,
+                company,
+                queries,
+                source_type,
+                max_results_per_query,
+                run_id=run_id,
+            )
+            for company, queries in items
+        ]
+        for fut in as_completed(futures):
+            result = fut.result()
+            all_sources.extend(result["sources"])
+            all_evidence.extend(result["evidence"])
+            all_warnings.extend(result["warnings"])
 
     return {"sources": all_sources, "evidence": all_evidence, "warnings": all_warnings}
 

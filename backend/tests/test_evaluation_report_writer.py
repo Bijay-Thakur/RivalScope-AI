@@ -57,6 +57,7 @@ def test_unified_md_contains_headline_metrics(tmp_path):
     assert "Comparison two-sidedness" in md
     assert "Hallucination rate" in md
     assert "Claim grounding rate" in md
+    assert "Judge Observability" in md
 
     csv_text = open(paths["csv"], encoding="utf-8").read()
     assert "comparison_two_sidedness" in csv_text
@@ -66,3 +67,16 @@ def test_unified_md_contains_headline_metrics(tmp_path):
     fm = open(paths["failure_modes"], encoding="utf-8").read()
     assert "Comparison Matrix Issues" in fm
     assert "One-sided comparison row" in fm
+
+
+def test_md_loud_warning_when_grounding_unreliable(tmp_path):
+    result = _result()
+    result.grounding_unreliable = True
+    result.n_judged_ok = 0
+    result.n_judge_errors = 10
+    result.n_claims_total = 10
+    result.avg_grounding_rate = None
+    paths = write_experiment_results(result, output_dir=str(tmp_path))
+    md = open(paths["markdown"], encoding="utf-8").read()
+    assert "GROUNDING UNRELIABLE" in md
+    assert "n/a" in md  # null grounding rendered as n/a

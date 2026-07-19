@@ -12,9 +12,19 @@ from app.schemas.report import (
     VerifiedClaim,
 )
 from app.schemas.research import ResearchRequest
+from app.services.claim_policy import (
+    filter_report_input_claims,
+    format_claims_for_report_context,
+)
+from app.services.confidence import compute_confidence_score
+from app.services.content_sanitize import sanitize_retrieved_text
 from app.services.context_budget import trim_evidence_to_budget
+from app.services.grounding_verifier import (
+    apply_grounding_repairs,
+    verify_report_grounding,
+)
 from app.services.json_utils import extract_json_from_text, safe_get_message_text
-from app.services.llm import invoke_with_fallback
+from app.services.llm import invoke_with_fallback, resolve_step_provider
 from app.services.mock_data import build_mock_report
 from app.services.prompts import REPORT_GENERATOR_SYSTEM_PROMPT
 
@@ -116,10 +126,14 @@ def _build_context(
     our_sources, rival_sources, other_sources = _partition_by_company(sources, our, rival)
     our_evidence, rival_evidence, other_evidence = _partition_by_company(evidence, our, rival)
 
+    from app.services.compare_features import feature_labels
+
+    dims = feature_labels(request.compare_features)
     lines: list[str] = [
         f"our_company: {our}",
         f"competitor: {rival}",
         f"market: {request.market}",
+        f"compare_features: {', '.join(dims) if dims else '(none)'}",
         f"report_type: {request.report_type}",
         "",
     ]
@@ -132,11 +146,9 @@ def _build_context(
     if comparison_matrix is not None:
         _append_comparison_section(lines, request, comparison_matrix)
 
-    lines += ["=== VERIFIED CLAIMS ==="]
-    for claim in verified_claims[:_MAX_CLAIMS]:
-        lines.append(
-            f"- [{claim.verification_status} | score={claim.confidence_score}] {claim.claim}"
-        )
+    # Unsupported claims are excluded in code — never rely on the prompt alone.
+    safe_claims = filter_report_input_claims(verified_claims)[:_MAX_CLAIMS]
+    lines += ["", format_claims_for_report_context(safe_claims)]
 
     return "\n".join(lines)
 
@@ -284,8 +296,9 @@ def generate_competitor_report(
         )
         return mock
 
+    safe_claims = filter_report_input_claims(verified_claims)
     context = _build_context(
-        request, sources, evidence, verified_claims, comparison_matrix, run_id=run_id
+        request, sources, evidence, safe_claims, comparison_matrix, run_id=run_id
     )
 
     try:
@@ -302,6 +315,8 @@ def generate_competitor_report(
             ],
             run_id=run_id,
             call_name="report_generator_llm",
+            preferred_provider=resolve_step_provider(settings.report_provider),
+            stage="report_generator",
         )
         raw = safe_get_message_text(response)
         data = extract_json_from_text(raw)
@@ -358,21 +373,13 @@ def generate_competitor_report(
             landmines=_safe_list(bc_raw.get("landmines"), []),
         )
 
-        raw_score = data.get("confidenceScore") or data.get("confidence_score") or 50
-        try:
-            score = float(raw_score)
-            if 0 < score <= 1.0:
-                score = score * 100.0  # tolerate a model returning a 0-1 fraction despite the prompt
-            score = max(0.0, min(100.0, score))
-        except (TypeError, ValueError):
-            score = 50.0
-
         pricing = (
             data.get("pricingIntelligence")
             or data.get("pricing_intelligence")
             or _NOT_FOUND
         )
 
+        # Canonical sources/evidence owned by application — never LLM-invented.
         report = CompetitorReport(
             company_snapshot=_safe_str(
                 data.get("companySnapshot") or data.get("company_snapshot"),
@@ -399,10 +406,48 @@ def generate_competitor_report(
             comparison_matrix=comparison_matrix,
             evidence=evidence,
             sources=sources,
-            confidence_score=score,
+            confidence_score=50.0,
             generated_at=generated_at,
             research_mode="real",
             warnings=warnings,
+        )
+
+        findings = verify_report_grounding(
+            report, evidence=evidence, verified_claims=safe_claims
+        )
+        report, gw = apply_grounding_repairs(report, findings)
+        warnings.extend(gw)
+
+        section_bits = [
+            bool(report.company_snapshot.strip()),
+            bool(report.product_positioning.strip()),
+            bool(report.pricing_intelligence.strip()),
+            bool(report.strengths),
+            bool(report.weaknesses),
+            bool(report.recent_moves),
+            bool(report.sales_battlecard.talk_tracks),
+        ]
+        section_fill = sum(1 for x in section_bits if x) / len(section_bits)
+        report.confidence_score = compute_confidence_score(
+            sources=sources,
+            evidence=evidence,
+            verified_claims=verified_claims,
+            comparison_matrix=comparison_matrix,
+            section_fill_ratio=section_fill,
+        )
+        ungrounded_n = sum(
+            1 for f in findings if f.status in {"ungrounded", "contradicted"}
+        )
+        log_run_event(
+            run_id,
+            "report_grounding_verified",
+            {
+                "finding_count": len(findings),
+                "ungrounded_or_contradicted": ungrounded_n,
+                "repairs": len(gw),
+                "confidence_score": report.confidence_score,
+            },
+            logger=logger,
         )
     except Exception as exc:
         logger.warning(

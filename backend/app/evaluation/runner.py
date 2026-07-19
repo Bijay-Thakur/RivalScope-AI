@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import time
 
 from app.core.config import settings
@@ -16,6 +17,8 @@ from app.graph.workflow import run_research_graph
 from app.observability.tracing import traceable
 from app.schemas.report import CompetitorReport
 from app.schemas.research import ReportType, ResearchRequest
+
+logger = logging.getLogger(__name__)
 
 STRUCTURAL = "structural"
 FULL = "full"
@@ -77,45 +80,73 @@ async def _evidence_verdicts(
                 judge_confidence=1.0,
             )
             continue
+        source_text = (item.raw_text or src.snippet or "").strip()
+        if not source_text:
+            # Honest: cited source has no text to judge against.
+            verdicts[i] = ClaimVerdict(
+                claim=item.claim,
+                source_id=item.source_id,
+                self_confidence=item.confidence,
+                verdict=Verdict.CITATION_INVALID,
+                rationale="empty source text (raw_text and snippet both empty)",
+                judge_confidence=1.0,
+            )
+            continue
         judge_idx.append(i)
         judge_items.append(
             {
                 "claim": item.claim,
                 "source_title": src.title,
                 "source_url": src.url,
-                "source_text": item.raw_text or src.snippet or "",
+                "source_text": source_text,
             }
         )
 
-    judged = await judge_claims(judge_items, model=judge_model, max_concurrency=concurrency)
-    for idx, (verdict, rationale, jc) in zip(judge_idx, judged):
-        item = report.evidence[idx]
-        verdicts[idx] = ClaimVerdict(
-            claim=item.claim,
-            source_id=item.source_id,
-            self_confidence=item.confidence,
-            verdict=verdict,
-            rationale=rationale,
-            judge_confidence=jc,
+    if judge_items:
+        judged = await judge_claims(
+            judge_items, model=judge_model, max_concurrency=concurrency
         )
+        for idx, (verdict, rationale, jc) in zip(judge_idx, judged):
+            item = report.evidence[idx]
+            verdicts[idx] = ClaimVerdict(
+                claim=item.claim,
+                source_id=item.source_id,
+                self_confidence=item.confidence,
+                verdict=verdict,
+                rationale=rationale,
+                judge_confidence=jc,
+            )
     return [v for v in verdicts if v is not None]
 
 
 async def _comparison_grounding(
     report: CompetitorReport, judge_model: str, concurrency: int
 ) -> float | None:
+    """Return grounded fraction over successfully judged cells; None if none judged."""
     matrix = report.comparison_matrix
     if matrix is None or not matrix.rows:
         return None
 
     source_map = {s.id: s for s in report.sources}
+    # Prefer full extract text from evidence citing that source (not just snippet).
+    raw_by_source: dict[str, str] = {}
+    for ev in report.evidence:
+        text = (ev.raw_text or "").strip()
+        if text and (
+            ev.source_id not in raw_by_source
+            or len(text) > len(raw_by_source[ev.source_id])
+        ):
+            raw_by_source[ev.source_id] = text
 
     def _src_text(ids: list[str]) -> str:
-        return "\n".join(
-            source_map[i].snippet or source_map[i].title
-            for i in ids
-            if i in source_map and (source_map[i].snippet or source_map[i].title)
-        )
+        chunks: list[str] = []
+        for i in ids:
+            if i not in source_map:
+                continue
+            body = raw_by_source.get(i) or source_map[i].snippet or source_map[i].title
+            if body:
+                chunks.append(body)
+        return "\n".join(chunks)
 
     items: list[dict] = []
     for row in matrix.rows:
@@ -134,8 +165,11 @@ async def _comparison_grounding(
         return None
 
     judged = await judge_claims(items, model=judge_model, max_concurrency=concurrency)
-    grounded = sum(1 for verdict, _, _ in judged if verdict in _GROUNDED)
-    return grounded / len(judged)
+    ok = [(v, r, c) for v, r, c in judged if v != Verdict.ERROR]
+    if not ok:
+        return None
+    grounded = sum(1 for verdict, _, _ in ok if verdict in _GROUNDED)
+    return grounded / len(ok)
 
 
 @traceable(run_type="chain", name="benchmark_task")
@@ -185,16 +219,29 @@ async def _run_single_task(
     if mode == FULL:
         verdicts = await _evidence_verdicts(final_report, judge_model, judge_concurrency)
         gm = grounding_metrics(verdicts)
-        score.grounding_rate = gm["grounding_rate"]
-        score.hallucination_rate = gm["hallucination_rate"]
+        score.grounding_rate = gm["grounding_rate"]  # type: ignore[assignment]
+        score.hallucination_rate = gm["hallucination_rate"]  # type: ignore[assignment]
+        score.n_claims_total = int(gm["n_claims_total"] or 0)
+        score.n_judged_ok = int(gm["n_judged_ok"] or 0)
+        score.n_judge_errors = int(gm["n_judge_errors"] or 0)
+        score.n_citation_invalid = int(gm["n_citation_invalid"] or 0)
         score.comparison_grounding = await _comparison_grounding(
             final_report, judge_model, judge_concurrency
         )
-        score.failure_notes = score.failure_notes + [
+        extra_notes: list[str] = [
             f"Contradicted claim: {v.claim[:80]}"
             for v in verdicts
             if v.verdict == Verdict.CONTRADICTED
         ]
+        if score.n_judge_errors:
+            extra_notes.append(
+                f"Judge errors: {score.n_judge_errors}/{score.n_claims_total} claims"
+            )
+        if score.n_judged_ok == 0 and score.n_claims_total > 0:
+            extra_notes.append(
+                "GROUNDING UNRELIABLE: judge produced 0 valid verdicts"
+            )
+        score.failure_notes = score.failure_notes + extra_notes
 
     return score
 
@@ -220,7 +267,7 @@ async def run_evaluation(
         tasks = tasks[:max_tasks]
 
     judge_model = settings.judge_model
-    judge_concurrency = settings.eval_max_concurrency
+    judge_concurrency = settings.judge_max_concurrency
     semaphore = asyncio.Semaphore(task_concurrency)
 
     async def _bounded(task: BenchmarkTask) -> TaskScore:
@@ -252,6 +299,23 @@ async def run_evaluation(
             task_scores=[],
         )
 
+    n_claims_total = sum(s.n_claims_total or 0 for s in task_scores)
+    n_judged_ok = sum(s.n_judged_ok or 0 for s in task_scores)
+    n_judge_errors = sum(s.n_judge_errors or 0 for s in task_scores)
+    n_citation_invalid = sum(s.n_citation_invalid or 0 for s in task_scores)
+    grounding_unreliable = mode == FULL and (
+        n_judge_errors > 0 or (n_claims_total > 0 and n_judged_ok == 0)
+    )
+    if grounding_unreliable:
+        logger.error(
+            "GROUNDING UNRELIABLE: judge produced %d valid verdicts / %d errors "
+            "(claims_total=%d citation_invalid=%d)",
+            n_judged_ok,
+            n_judge_errors,
+            n_claims_total,
+            n_citation_invalid,
+        )
+
     return ExperimentResult(
         experiment_name=experiment_name,
         model_provider=settings.primary_llm_provider,
@@ -271,5 +335,10 @@ async def run_evaluation(
         avg_grounding_rate=_avg([s.grounding_rate for s in task_scores]),
         avg_hallucination_rate=_avg([s.hallucination_rate for s in task_scores]),
         avg_comparison_grounding=_avg([s.comparison_grounding for s in task_scores]),
+        n_claims_total=n_claims_total,
+        n_judged_ok=n_judged_ok,
+        n_judge_errors=n_judge_errors,
+        n_citation_invalid=n_citation_invalid,
+        grounding_unreliable=grounding_unreliable,
         task_scores=task_scores,
     )

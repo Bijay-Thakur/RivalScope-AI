@@ -111,37 +111,72 @@ def normalize_input(state: RivalScopeState) -> PartialState:
 # ---------------------------------------------------------------------------
 
 def create_research_plan(state: RivalScopeState) -> PartialState:
+    from app.services.pipeline_validation import validate_research_plan
+
     req = state["request"]
     real = is_real_mode()
+    our, rival = req.our_company, req.competitor
 
+    # Application-owned plan (7–8 tasks). Planner prompt reserved for future LLM use;
+    # coverage/duplicates validated programmatically.
     plan = [
         ResearchTask(
-            id="task-company-profile",
+            id="task-company-profile-our",
             track="company_profile",
-            objective=f"{'Build' if real else 'Build demo'} company profile for {req.competitor}",
+            objective=f"Company profile and positioning for {our}",
             priority=1,
         ),
         ResearchTask(
-            id="task-product-features",
-            track="product_features",
-            objective=f"Map product and feature positioning in {req.market}",
+            id="task-company-profile-rival",
+            track="company_profile",
+            objective=f"Company profile and positioning for {rival}",
             priority=2,
+        ),
+        ResearchTask(
+            id="task-product-our",
+            track="product_features",
+            objective=f"Core product features and capabilities for {our}",
+            priority=3,
+        ),
+        ResearchTask(
+            id="task-product-rival",
+            track="product_features",
+            objective=f"Core product features and capabilities for {rival}",
+            priority=4,
+        ),
+        ResearchTask(
+            id="task-product-integrations",
+            track="product_features",
+            objective=f"Integrations and ecosystem signals for {our} and {rival}",
+            priority=5,
         ),
         ResearchTask(
             id="task-pricing",
             track="pricing",
-            objective=f"Collect {'live' if real else 'illustrative'} pricing signals for {req.competitor}",
-            priority=3,
+            objective=f"Collect {'live' if real else 'illustrative'} pricing for {our} and {rival}",
+            priority=6,
         ),
         ResearchTask(
-            id="task-recent-news",
+            id="task-news-our",
             track="recent_news",
-            objective=f"Scan {'recent' if real else 'mock recent'} news and GTM moves in {req.market}",
-            priority=4,
+            objective=f"Recent news and GTM moves for {our}",
+            priority=7,
+        ),
+        ResearchTask(
+            id="task-news-rival",
+            track="recent_news",
+            objective=f"Recent news and GTM moves for {rival}",
+            priority=8,
         ),
     ]
+    validation = validate_research_plan(plan)
+    if not validation.ok:
+        logger.warning(
+            "research_plan validation issues: %s",
+            [i.message for i in validation.issues],
+        )
     msg = (
-        f"Creating research plan — {len(plan)} research tracks."
+        f"Creating research plan — {len(plan)} tasks across tracks."
         if real
         else f"Demo: created {len(plan)} research tasks for parallel tracks."
     )
@@ -153,13 +188,16 @@ def create_research_plan(state: RivalScopeState) -> PartialState:
 # Mock helpers (preserved from Phase 2)
 # ---------------------------------------------------------------------------
 
-def _mock_source(source_id: str, title: str, source_type: str) -> Source:
+def _mock_source(
+    source_id: str, title: str, source_type: str, company: str | None = None
+) -> Source:
     return Source(
         id=source_id,
         title=title,
         url=f"https://example.com/demo/{source_id}",
         source_type=source_type,
         credibility_score=0.75,
+        company=company,
     )
 
 
@@ -224,15 +262,19 @@ async def company_profile_track(state: RivalScopeState) -> PartialState:
         "src-company-profile",
         f"{rival} — Company profile (demo snapshot)",
         "company_page",
+        company=rival,
+    )
+    claim = (
+        f"Demo: {rival} public profile emphasizes leadership in "
+        f"{state['request'].market} with an enterprise-ready narrative (mock)."
     )
     evidence = EvidenceItem(
         id="ev-company-profile",
-        claim=(
-            f"Demo: {rival} public profile emphasizes leadership in "
-            f"{state['request'].market} with an enterprise-ready narrative (mock)."
-        ),
+        claim=claim,
         source_id=source.id,
         confidence="high",
+        raw_text=claim,
+        company=rival,
     )
     step, events = _with_progress(
         state, "company_profile_track", f"Demo: added company profile evidence for {rival}."
@@ -259,15 +301,19 @@ async def product_track(state: RivalScopeState) -> PartialState:
         "src-product",
         f"{rival} — Product & features overview (demo snapshot)",
         "docs",
+        company=rival,
+    )
+    claim = (
+        f"Demo: {rival} product messaging highlights modular capabilities and "
+        f"integrations common in {state['request'].market} evaluations (mock)."
     )
     evidence = EvidenceItem(
         id="ev-product",
-        claim=(
-            f"Demo: {rival} product messaging highlights modular capabilities and "
-            f"integrations common in {state['request'].market} evaluations (mock)."
-        ),
+        claim=claim,
         source_id=source.id,
         confidence="medium",
+        raw_text=claim,
+        company=rival,
     )
     step, events = _with_progress(
         state, "product_track", f"Demo: added product and features evidence for {rival}."
@@ -294,15 +340,19 @@ async def pricing_track(state: RivalScopeState) -> PartialState:
         "src-pricing",
         f"{rival} — Pricing page (demo snapshot)",
         "pricing_page",
+        company=rival,
+    )
+    claim = (
+        f"Demo: illustrative pricing tiers for {rival} show per-seat plans with "
+        f"a starter tier and mid-market bundles (mock — not live pricing)."
     )
     evidence = EvidenceItem(
         id="ev-pricing",
-        claim=(
-            f"Demo: illustrative pricing tiers for {rival} show per-seat plans with "
-            f"a starter tier and mid-market bundles (mock — not live pricing)."
-        ),
+        claim=claim,
         source_id=source.id,
         confidence="medium",
+        raw_text=claim,
+        company=rival,
     )
     step, events = _with_progress(
         state, "pricing_track", f"Demo: added pricing evidence for {rival}."
@@ -329,15 +379,19 @@ async def news_track(state: RivalScopeState) -> PartialState:
         "src-news",
         f"{rival} — Recent news summary (demo snapshot)",
         "news",
+        company=rival,
+    )
+    claim = (
+        f"Demo: mock press recap notes {rival} announced roadmap updates and "
+        f"partnership activity relevant to {state['request'].market}."
     )
     evidence = EvidenceItem(
         id="ev-news",
-        claim=(
-            f"Demo: mock press recap notes {rival} announced roadmap updates and "
-            f"partnership activity relevant to {state['request'].market}."
-        ),
+        claim=claim,
         source_id=source.id,
         confidence="low",
+        raw_text=claim,
+        company=rival,
     )
     step, events = _with_progress(
         state, "news_track", f"Demo: added recent news evidence for {rival}."
@@ -357,11 +411,14 @@ async def news_track(state: RivalScopeState) -> PartialState:
 async def fact_checker_stub(state: RivalScopeState) -> PartialState:
     if is_real_mode():
         try:
+            req = state["request"]
             verified = await asyncio.to_thread(
                 verify_evidence_claims,
                 evidence=state["evidence"],
                 sources=state["sources"],
                 run_id=state["run_id"],
+                our_company=req.our_company,
+                competitor=req.competitor,
             )
         except Exception as exc:
             msg = f"Fact checker failed [{type(exc).__name__}] — skipping verification."

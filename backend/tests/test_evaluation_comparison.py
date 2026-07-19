@@ -85,11 +85,43 @@ def test_grounding_metrics_rates():
         _cv(Verdict.CONTRADICTED), _cv(Verdict.CITATION_INVALID),
     ]
     m = grounding_metrics(verdicts)
-    assert m["grounding_rate"] == 2 / 4
-    assert m["hallucination_rate"] == 1 / 4
+    # rates over judged_ok only (3); grounded = supported|partial
+    assert m["grounding_rate"] == 2 / 3  # 2 supported, 0 partial
+    assert m["hallucination_rate"] == 1 / 3
     assert m["citation_validity"] == 3 / 4
+    assert m["n_judged_ok"] == 3
+    assert m["n_citation_invalid"] == 1
+    assert m["n_judge_errors"] == 0
 
 
-def test_grounding_metrics_empty_no_div_zero():
+def test_grounding_metrics_counts_partial_as_grounded():
+    m = grounding_metrics(
+        [_cv(Verdict.SUPPORTED), _cv(Verdict.PARTIAL), _cv(Verdict.UNSUPPORTED)]
+    )
+    assert m["grounding_rate"] == 2 / 3
+    assert m["n_judged_ok"] == 3
+
+
+def test_grounding_metrics_empty_returns_null_rates():
     m = grounding_metrics([])
-    assert m == {"grounding_rate": 0.0, "hallucination_rate": 0.0, "citation_validity": 0.0}
+    assert m["grounding_rate"] is None
+    assert m["hallucination_rate"] is None
+    assert m["n_judged_ok"] == 0
+    assert m["n_claims_total"] == 0
+
+
+def test_grounding_metrics_all_errors_null_not_zero():
+    m = grounding_metrics([_cv(Verdict.ERROR), _cv(Verdict.ERROR)])
+    assert m["grounding_rate"] is None
+    assert m["hallucination_rate"] is None
+    assert m["n_judge_errors"] == 2
+    assert m["n_judged_ok"] == 0
+
+
+def test_grounding_metrics_mixed_error_excluded_from_denom():
+    m = grounding_metrics(
+        [_cv(Verdict.SUPPORTED), _cv(Verdict.ERROR), _cv(Verdict.UNSUPPORTED)]
+    )
+    assert m["grounding_rate"] == 0.5
+    assert m["n_judged_ok"] == 2
+    assert m["n_judge_errors"] == 1

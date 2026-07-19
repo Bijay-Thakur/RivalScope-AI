@@ -1,10 +1,21 @@
 export type ReportType = "quick_brief" | "deep_research" | "sales_battlecard";
 
+/** Buyer-critical dims — must match backend compare_features catalog ids. */
+export type CompareFeatureId =
+  | "pricing"
+  | "core_features"
+  | "integrations"
+  | "security"
+  | "ai_capabilities"
+  | "collaboration";
+
 export interface ResearchInput {
   ourCompany: string;
   competitor: string;
+  /** Derived label for display/DB; optional when compareFeatures set. */
   market: string;
   reportType: ReportType;
+  compareFeatures: CompareFeatureId[];
 }
 
 export type SourceType =

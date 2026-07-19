@@ -23,6 +23,7 @@ class Verdict(StrEnum):
     UNSUPPORTED = "unsupported"
     CONTRADICTED = "contradicted"
     CITATION_INVALID = "citation_invalid"
+    ERROR = "error"  # judge never produced a real verdict (API/parse failure)
 
 
 class ClaimVerdict(BaseModel):
@@ -53,9 +54,13 @@ class TaskScore(BaseModel):
     advantage_distribution: dict[str, int] = Field(default_factory=dict)
 
     # Grounding (LLM-judge — populated only in --mode full)
-    grounding_rate: float | None = None
+    grounding_rate: float | None = None  # null if n_judged_ok==0
     hallucination_rate: float | None = None
     comparison_grounding: float | None = None
+    n_claims_total: int | None = None
+    n_judged_ok: int | None = None
+    n_judge_errors: int | None = None
+    n_citation_invalid: int | None = None
 
 
 class ExperimentResult(BaseModel):
@@ -76,4 +81,10 @@ class ExperimentResult(BaseModel):
     avg_grounding_rate: float | None = None
     avg_hallucination_rate: float | None = None
     avg_comparison_grounding: float | None = None
+    # judge observability (full mode only; 0/None in structural)
+    n_claims_total: int = 0
+    n_judged_ok: int = 0
+    n_judge_errors: int = 0
+    n_citation_invalid: int = 0
+    grounding_unreliable: bool = False
     task_scores: list[TaskScore]

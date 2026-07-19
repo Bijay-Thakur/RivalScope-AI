@@ -100,7 +100,9 @@ def _write_markdown_summary(result: ExperimentResult, output_path: Path) -> Path
     )
 
     def _pct(value: float | None) -> str:
-        return f"{value:.1%}" if value is not None else "n/a (structural mode)"
+        if value is None:
+            return "n/a"
+        return f"{value:.1%}"
 
     lines = [
         f"# Experiment Summary: {result.experiment_name}",
@@ -119,38 +121,66 @@ def _write_markdown_summary(result: ExperimentResult, output_path: Path) -> Path
         f"- **Average latency (s):** {result.average_latency_seconds:.2f}",
         f"- **Average source count:** {result.average_source_count:.2f}",
         "",
-        "## Observability",
-        "",
-        "When LangSmith tracing is enabled (`LANGSMITH_TRACING=true` in `backend/.env`), "
-        "each benchmark task appears as a trace in the LangSmith project above. "
-        "Open [smith.langchain.com](https://smith.langchain.com) → **Traces** and filter by "
-        f"project `{result.langsmith_project or 'rivalscope-ai'}`.",
-        "",
-        "Trace hierarchy per task:",
-        "",
-        "- `evaluation_experiment` — full benchmark run",
-        "- `benchmark_task` — single competitor pair",
-        "- `research_graph` — LangGraph workflow",
-        "- Graph nodes: `normalize_input`, `create_research_plan`, `company_profile_track`, "
-        "`product_track`, `pricing_track`, `news_track`, `fact_checker_stub`, "
-        "`comparison_agent`, `report_generator`",
-        "- Tools: `search_web`, `extract_urls` (real mode)",
-        "- LLM spans: `fact_checker_llm`, `comparison_agent_llm`, `report_generator_llm`",
-        "",
-        "## Headline Metrics",
-        "",
-        f"- **Comparison two-sidedness:** {_pct(result.avg_comparison_two_sidedness)} "
-        "(share of matrix rows with BOTH sides filled — measures the one-sided bug)",
-        f"- **Comparison citation validity:** {_pct(result.avg_comparison_citation_validity)}",
-        f"- **Claim grounding rate:** {_pct(result.avg_grounding_rate)}",
-        f"- **Hallucination rate:** {_pct(result.avg_hallucination_rate)}",
-        f"- **Comparison grounding:** {_pct(result.avg_comparison_grounding)}",
-        "",
-        "## Task Scores",
-        "",
-        "| Task ID | Overall | Completion | Sections | Sources | Citations | Evidence | Sources | Latency (s) | Warnings |",
-        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
+
+    if result.eval_mode == "full":
+        lines.extend(
+            [
+                "## Judge Observability",
+                "",
+                f"- **n_claims_total:** {result.n_claims_total}",
+                f"- **n_judged_ok:** {result.n_judged_ok}",
+                f"- **n_judge_errors:** {result.n_judge_errors}",
+                f"- **n_citation_invalid:** {result.n_citation_invalid}",
+                "",
+            ]
+        )
+        if result.grounding_unreliable:
+            lines.extend(
+                [
+                    "> **GROUNDING UNRELIABLE:** judge produced "
+                    f"{result.n_judged_ok} valid verdicts / {result.n_judge_errors} errors "
+                    f"(claims_total={result.n_claims_total}). "
+                    "Do NOT treat grounding_rate=0 as a clean result.",
+                    "",
+                ]
+            )
+
+    lines.extend(
+        [
+            "## Observability",
+            "",
+            "When LangSmith tracing is enabled (`LANGSMITH_TRACING=true` in `backend/.env`), "
+            "each benchmark task appears as a trace in the LangSmith project above. "
+            "Open [smith.langchain.com](https://smith.langchain.com) → **Traces** and filter by "
+            f"project `{result.langsmith_project or 'rivalscope-ai'}`.",
+            "",
+            "Trace hierarchy per task:",
+            "",
+            "- `evaluation_experiment` — full benchmark run",
+            "- `benchmark_task` — single competitor pair",
+            "- `research_graph` — LangGraph workflow",
+            "- Graph nodes: `normalize_input`, `create_research_plan`, `company_profile_track`, "
+            "`product_track`, `pricing_track`, `news_track`, `fact_checker_stub`, "
+            "`comparison_agent`, `report_generator`",
+            "- Tools: `search_web`, `extract_urls` (real mode)",
+            "- LLM spans: `fact_checker_llm`, `comparison_agent_llm`, `report_generator_llm`",
+            "",
+            "## Headline Metrics",
+            "",
+            f"- **Comparison two-sidedness:** {_pct(result.avg_comparison_two_sidedness)} "
+            "(share of matrix rows with BOTH sides filled — measures the one-sided bug)",
+            f"- **Comparison citation validity:** {_pct(result.avg_comparison_citation_validity)}",
+            f"- **Claim grounding rate:** {_pct(result.avg_grounding_rate)}",
+            f"- **Hallucination rate:** {_pct(result.avg_hallucination_rate)}",
+            f"- **Comparison grounding:** {_pct(result.avg_comparison_grounding)}",
+            "",
+            "## Task Scores",
+            "",
+            "| Task ID | Overall | Completion | Sections | Sources | Citations | Evidence | Sources | Latency (s) | Warnings |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+    )
 
     for task_score in result.task_scores:
         lines.append(
