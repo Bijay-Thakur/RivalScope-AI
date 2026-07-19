@@ -59,9 +59,14 @@ backend/logs/
 # local sqlite database
 backend/app/data/
 
-# eval run artifacts (keep .gitkeep)
+# eval run artifacts (keep .gitkeep + latest Gemini readings + index)
 backend/eval_results/*
 !backend/eval_results/.gitkeep
+!backend/eval_results/README.md
+!backend/eval_results/gemini_latest.json
+!backend/eval_results/gemini_latest.csv
+!backend/eval_results/gemini_latest_summary.md
+!backend/eval_results/gemini_latest_failure_modes.md
 
 # npm cache (local installs)
 .npm-cache/

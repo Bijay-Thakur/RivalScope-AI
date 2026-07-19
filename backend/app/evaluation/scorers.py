@@ -285,6 +285,8 @@ def grounding_metrics(verdicts: list[ClaimVerdict]) -> dict[str, float | int | N
     grounding_rate / hallucination_rate are None when no claim was successfully
     judged (n_judged_ok==0) — never silently report 0.0 for a failed judge layer.
     Rates are over n_judged_ok only (ERROR / CITATION_INVALID excluded from denom).
+
+    hallucination_rate = (unsupported + contradicted) / n_judged_ok
     """
     n_claims_total = len(verdicts)
     n_judge_errors = sum(1 for v in verdicts if v.verdict == Verdict.ERROR)
@@ -308,14 +310,18 @@ def grounding_metrics(verdicts: list[ClaimVerdict]) -> dict[str, float | int | N
         }
 
     # Grounded = supported OR partial (partial = source partly entails claim).
-    # Aligns with comparison_grounding; unsupported/contradicted are not grounded.
+    # Hallucination = unsupported OR contradicted (claim not faithfully backed by citation).
     grounded = sum(
         1 for v in judged if v.verdict in {Verdict.SUPPORTED, Verdict.PARTIAL}
     )
-    contradicted = sum(1 for v in judged if v.verdict == Verdict.CONTRADICTED)
+    hallucinated = sum(
+        1
+        for v in judged
+        if v.verdict in {Verdict.UNSUPPORTED, Verdict.CONTRADICTED}
+    )
     return {
         "grounding_rate": grounded / n_judged_ok,
-        "hallucination_rate": contradicted / n_judged_ok,
+        "hallucination_rate": hallucinated / n_judged_ok,
         "citation_validity": (n_claims_total - n_citation_invalid) / n_claims_total,
         "n_claims_total": n_claims_total,
         "n_judged_ok": n_judged_ok,

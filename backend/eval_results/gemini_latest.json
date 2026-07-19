@@ -1,0 +1,59 @@
+{
+  "experiment_name": "gemini_latest",
+  "model_provider": "gemini",
+  "research_mode": "real",
+  "eval_mode": "full",
+  "judge_model": "gemini-2.5-flash",
+  "langsmith_tracing": true,
+  "langsmith_project": "rivalscope-ai",
+  "total_tasks": 1,
+  "average_score": 0.7669444444444445,
+  "average_latency_seconds": 76.78049420000752,
+  "average_source_count": 21.0,
+  "avg_comparison_two_sidedness": 0.8,
+  "avg_comparison_citation_validity": 1.0,
+  "avg_grounding_rate": 1.0,
+  "avg_hallucination_rate": 0.0,
+  "avg_comparison_grounding": 0.8888888888888888,
+  "n_claims_total": 21,
+  "n_judged_ok": 21,
+  "n_judge_errors": 0,
+  "n_citation_invalid": 0,
+  "grounding_unreliable": false,
+  "task_scores": [
+    {
+      "task_id": "task-001-clickup-notion",
+      "task_completion": 0.875,
+      "section_coverage": 0.7777777777777778,
+      "source_coverage": 0.6,
+      "citation_integrity": 1.0,
+      "evidence_count": 21,
+      "source_count": 21,
+      "latency_seconds": 76.78049420000752,
+      "warnings_count": 2,
+      "overall_score": 0.7669444444444445,
+      "failure_notes": [
+        "Major field 'sales_battlecard' is missing or empty",
+        "Expected section 'recent_moves' is missing or empty",
+        "Expected section 'sales_battlecard' is missing or empty",
+        "Expected source type 'company_page' not found in report sources",
+        "Expected source type 'docs' not found in report sources",
+        "One-sided comparison row: 'General Pricing Transparency'"
+      ],
+      "comparison_two_sidedness": 0.8,
+      "comparison_citation_validity": 1.0,
+      "advantage_distribution": {
+        "our": 2,
+        "unclear": 2,
+        "competitor": 1
+      },
+      "grounding_rate": 1.0,
+      "hallucination_rate": 0.0,
+      "comparison_grounding": 0.8888888888888888,
+      "n_claims_total": 21,
+      "n_judged_ok": 21,
+      "n_judge_errors": 0,
+      "n_citation_invalid": 0
+    }
+  ]
+}

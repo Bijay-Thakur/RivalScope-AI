@@ -229,9 +229,9 @@ async def _run_single_task(
             final_report, judge_model, judge_concurrency
         )
         extra_notes: list[str] = [
-            f"Contradicted claim: {v.claim[:80]}"
+            f"{'Contradicted' if v.verdict == Verdict.CONTRADICTED else 'Unsupported'} claim: {v.claim[:80]}"
             for v in verdicts
-            if v.verdict == Verdict.CONTRADICTED
+            if v.verdict in {Verdict.CONTRADICTED, Verdict.UNSUPPORTED}
         ]
         if score.n_judge_errors:
             extra_notes.append(

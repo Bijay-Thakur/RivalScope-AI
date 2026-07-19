@@ -333,8 +333,8 @@ Judge model defaults to **`gemini-2.5-pro`** (stronger tier than synthesis `gemi
 
 | Metric | Type | Definition |
 | --- | --- | --- |
-| **grounding_rate** | Rate 0–1 | `supported` verdicts ÷ total judged evidence claims |
-| **hallucination_rate** | Rate 0–1 | `contradicted` verdicts ÷ total judged evidence claims |
+| **grounding_rate** | Rate 0–1 | (`supported` + `partial`) ÷ judged evidence claims |
+| **hallucination_rate** | Rate 0–1 | (`unsupported` + `contradicted`) ÷ judged evidence claims |
 | **comparison_grounding** | Rate 0–1 | % of judged matrix cell values (`our_value` / `competitor_value`) rated `supported` or `partial` against cited source snippets |
 | **judge citation_validity** | Internal | `(total − citation_invalid) ÷ total` during judge aggregation (feeds failure notes, not a separate CSV column) |
 
@@ -348,7 +348,7 @@ Contradicted claims are appended to per-task `failure_notes` for failure-mode an
 | `source_count` | Unique sources collected |
 | `latency_seconds` | End-to-end task duration |
 | `warnings_count` | Pipeline warnings + report warnings |
-| `failure_notes` | Human-readable issue list (sections missing, one-sided rows, contradicted claims, etc.) |
+| `failure_notes` | Human-readable issue list (sections missing, one-sided rows, unsupported/contradicted claims, etc.) |
 
 ### Experiment-level aggregates
 
@@ -363,7 +363,7 @@ Contradicted claims are appended to per-task `failure_notes` for failure-mode an
 | `avg_hallucination_rate` | Mean hallucination (full mode) |
 | `avg_comparison_grounding` | Mean matrix grounding (full mode) |
 
-Failure analysis (`failure_analysis.py`) groups recurring issues into markdown reports: low overall scores, weak dimensions, comparison matrix problems, latency outliers, and contradicted claims.
+Failure analysis (`failure_analysis.py`) groups recurring issues into markdown reports: low overall scores, weak dimensions, comparison matrix problems, latency outliers, and ungrounded claims.
 
 ---
 
@@ -515,9 +515,8 @@ rivalscope-ai/
     │   └── services/           # LLM, search, evidence, reports
     ├── scripts/
     │   ├── dev_server.py       # Safe reload dev server
-    │   ├── run_evaluation.py   # Benchmark CLI
-    │   └── manual_live_research_test.py
-    ├── tests/                  # 90 pytest cases
+    │   └── run_evaluation.py   # Benchmark CLI
+    ├── tests/                  # pytest suite
     ├── eval_results/           # Experiment outputs (gitignored)
     └── pyproject.toml
 ```

@@ -191,4 +191,4 @@ async def test_judge_success_mixed_verdicts_math(monkeypatch):
     assert gm["n_judged_ok"] == 4
     assert gm["n_judge_errors"] == 0
     assert gm["grounding_rate"] == 2 / 4  # supported + partial
-    assert gm["hallucination_rate"] == 1 / 4
+    assert gm["hallucination_rate"] == 2 / 4  # unsupported + contradicted

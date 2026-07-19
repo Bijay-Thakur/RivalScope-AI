@@ -99,6 +99,7 @@ def test_grounding_metrics_counts_partial_as_grounded():
         [_cv(Verdict.SUPPORTED), _cv(Verdict.PARTIAL), _cv(Verdict.UNSUPPORTED)]
     )
     assert m["grounding_rate"] == 2 / 3
+    assert m["hallucination_rate"] == 1 / 3  # unsupported only
     assert m["n_judged_ok"] == 3
 
 
@@ -123,5 +124,6 @@ def test_grounding_metrics_mixed_error_excluded_from_denom():
         [_cv(Verdict.SUPPORTED), _cv(Verdict.ERROR), _cv(Verdict.UNSUPPORTED)]
     )
     assert m["grounding_rate"] == 0.5
+    assert m["hallucination_rate"] == 0.5  # unsupported / judged_ok
     assert m["n_judged_ok"] == 2
     assert m["n_judge_errors"] == 1
